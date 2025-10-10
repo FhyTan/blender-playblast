@@ -141,7 +141,7 @@ def _draw_burn_in_text(
     margin: float,
 ):
     """"""
-    burn_in_props = context.scene.playblast_props.burn_in
+    burn_in_props = context.scene.playblast.burn_in
     font_id = load_font(burn_in_props.font_family)
 
     # Setup blf font
@@ -195,7 +195,7 @@ def draw_burn_in_text_in_viewport():
     if not poll(context):
         return
 
-    burn_in_props = context.scene.playblast_props.burn_in
+    burn_in_props = context.scene.playblast.burn_in
     if not burn_in_props.enable:
         return
 
@@ -217,7 +217,7 @@ def draw_burn_in_text_in_viewport():
 
 def draw_burn_in_text_in_render(context: bpy.types.Context):
     """Draw burn-in text in the offscreen rendered image."""
-    burn_in_props = context.scene.playblast_props.burn_in
+    burn_in_props = context.scene.playblast.burn_in
     if not burn_in_props.enable:
         return
 
@@ -242,7 +242,7 @@ def offscreen_render(
     """Render a single frame offscreen."""
 
     render = context.scene.render
-    playblast_props = context.scene.playblast_props
+    playblast = context.scene.playblast
 
     resolution = (render.resolution_x, render.resolution_y)
 
@@ -262,7 +262,7 @@ def offscreen_render(
             draw_background=True,
         )
 
-        if playblast_props.burn_in.enable:
+        if playblast.burn_in.enable:
             draw_burn_in_text_in_render(context)
 
         # Retrieve the image from the offscreen buffer

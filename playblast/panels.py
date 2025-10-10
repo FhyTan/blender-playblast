@@ -13,33 +13,32 @@ class PlayblastPanel(bpy.types.Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        video_props = context.scene.playblast_props.video
-        layout.prop(video_props, "codec")
-        layout.prop(video_props, "quality")
+        video_props = context.scene.playblast.video
+        layout.operator("render.playblast", text="Playblast", icon="RENDER_ANIMATION")
+        layout.separator()
+
+        col = layout.column()
+        col.prop(video_props, "codec")
+        col.prop(video_props, "scale")
 
 
 class PlayblastFilePanel(bpy.types.Panel):
     bl_idname = "VIEW3D_PT_playblast_file"
-    bl_label = "Save To File"
+    bl_label = "File"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "Tool"
     bl_parent_id = "VIEW3D_PT_playblast"
     bl_order = 0
 
-    def draw_header(self, context: bpy.types.Context):
-        file_props = context.scene.playblast_props.file
-        self.layout.prop(file_props, "enable", text="")
-
     def draw(self, context: bpy.types.Context):
         layout = self.layout
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        file_props = context.scene.playblast_props.file
+        file_props = context.scene.playblast.file
 
         col = layout.column()
-        col.enabled = file_props.enable
 
         col.prop(file_props, "directory")
         col.prop(file_props, "filename")
@@ -56,7 +55,7 @@ class PlayblastFilePanel(bpy.types.Panel):
 
 class PlayblastBurnInPanel(bpy.types.Panel):
     bl_idname = "VIEW3D_PT_playblast_burn_in"
-    bl_label = "Burn In Data"
+    bl_label = "Burn-In Data"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "Tool"
@@ -64,7 +63,7 @@ class PlayblastBurnInPanel(bpy.types.Panel):
     bl_order = 1
 
     def draw_header(self, context: bpy.types.Context):
-        burn_in_props = context.scene.playblast_props.burn_in
+        burn_in_props = context.scene.playblast.burn_in
         self.layout.prop(burn_in_props, "enable", text="")
 
     def draw(self, context: bpy.types.Context):
@@ -72,7 +71,7 @@ class PlayblastBurnInPanel(bpy.types.Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        burn_in_props = context.scene.playblast_props.burn_in
+        burn_in_props = context.scene.playblast.burn_in
 
         col = layout.column()
         col.enabled = burn_in_props.enable

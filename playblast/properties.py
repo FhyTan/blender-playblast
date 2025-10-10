@@ -1,3 +1,6 @@
+import os
+import tempfile
+
 import bpy
 
 
@@ -6,36 +9,38 @@ class VideoProperties(bpy.types.PropertyGroup):
         name="Codec",
         description="Video codec for playblast",
         items=[
-            ("H264", "H.264", "H.264 codec"),
-            ("MPEG4", "MPEG-4", "MPEG-4 codec"),
-            ("QuickTime", "QuickTime", "QuickTime codec"),
+            ("libx264", "H.264", "H.264 codec"),
+            ("libx265", "H.265", "HEVC codec"),
+            ("mpeg4", "MPEG-4", "MPEG-4 codec"),
+            ("libsvtav1", "AV1", "AV1 codec"),
         ],
-        default="H264",
+        default="libx264",
     )
 
-    quality: bpy.props.IntProperty(
-        name="Quality",
-        description="Quality of the video (1-100)",
-        default=90,
+    scale: bpy.props.IntProperty(
+        name="Scale",
+        description="Scale factor for the playblast resolution",
+        subtype="PERCENTAGE",
+        default=100,
         min=1,
         max=100,
     )
 
-    scale: bpy.props.FloatProperty(
-        name="Scale",
-        description="Scale factor for the playblast resolution",
-        default=1.0,
-        min=0.1,
-        max=1.0,
-    )
-
 
 def get_full_path(self):
+    """Join all parts to get the full path."""
+
     dir = self.directory
     name = self.filename
     use_ver = self.use_version
     ver = f".v{self.version:03d}"
     ext = self.extension
+
+    if not dir or dir.strip() == "//":
+        dir = bpy.path.abspath("//")
+
+    if not dir:
+        dir = os.path.join(tempfile.gettempdir(), "blender_playblast")
 
     dir = dir.replace("\\", "/")
     if not dir.endswith("/"):
@@ -50,16 +55,11 @@ def get_full_path(self):
 
 
 class FileProperties(bpy.types.PropertyGroup):
-    enable: bpy.props.BoolProperty(
-        name="Enable Save To File",
-        description="Enable saving the playblast to a file",
-        default=True,
-    )
-
     directory: bpy.props.StringProperty(
         name="Directory",
         description="Directory to save playblast file",
         subtype="DIR_PATH",
+        default="//",
     )
 
     filename: bpy.props.StringProperty(

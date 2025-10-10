@@ -13,6 +13,7 @@
 
 import bpy
 
+from .callback import frame_change_post_handler
 from .operators import PlayblastOperator
 from .panels import PlayblastBurnInPanel, PlayblastFilePanel, PlayblastPanel
 from .properties import (
@@ -29,26 +30,26 @@ draw_handler = None
 def register():
     global draw_handler
 
+    # Register Operators
+    bpy.utils.register_class(PlayblastOperator)
+
     # Register Property Groups
     bpy.utils.register_class(VideoProperties)
     bpy.utils.register_class(FileProperties)
     bpy.utils.register_class(BurnInProperties)
     bpy.utils.register_class(PlayblastProperties)
-    bpy.types.Scene.playblast_props = bpy.props.PointerProperty(
-        type=PlayblastProperties
-    )
-
-    # Register Operators
-    bpy.utils.register_class(PlayblastOperator)
+    bpy.types.Scene.playblast = bpy.props.PointerProperty(type=PlayblastProperties)
 
     # Register Panels
     bpy.utils.register_class(PlayblastPanel)
     bpy.utils.register_class(PlayblastBurnInPanel)
     bpy.utils.register_class(PlayblastFilePanel)
 
+    # Register Handlers
     draw_handler = bpy.types.SpaceView3D.draw_handler_add(
         draw_burn_in_text_in_viewport, (), "WINDOW", "POST_PIXEL"
     )
+    bpy.app.handlers.frame_change_post.append(frame_change_post_handler)
 
     print(__name__, "registered")
 
@@ -56,6 +57,8 @@ def register():
 def unregister():
     global draw_handler
 
+    # Unregister Handlers
+    bpy.app.handlers.frame_change_post.remove(frame_change_post_handler)
     if draw_handler is not None:
         bpy.types.SpaceView3D.draw_handler_remove(draw_handler, "WINDOW")
 
@@ -64,14 +67,14 @@ def unregister():
     bpy.utils.unregister_class(PlayblastBurnInPanel)
     bpy.utils.unregister_class(PlayblastPanel)
 
-    # Unregister Operators
-    bpy.utils.unregister_class(PlayblastOperator)
-
     # Unregister Property Groups
-    del bpy.types.Scene.playblast_props
+    del bpy.types.Scene.playblast
     bpy.utils.unregister_class(PlayblastProperties)
     bpy.utils.unregister_class(BurnInProperties)
     bpy.utils.unregister_class(FileProperties)
     bpy.utils.unregister_class(VideoProperties)
+
+    # Unregister Operators
+    bpy.utils.unregister_class(PlayblastOperator)
 
     print(__name__, "unregistered")
