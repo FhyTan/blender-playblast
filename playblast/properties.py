@@ -27,13 +27,17 @@ class VideoProperties(bpy.types.PropertyGroup):
     )
 
 
-def get_full_path(self):
-    """Join all parts to get the full path."""
+def get_version_str(self):
+    if not self.use_version:
+        return ""
+    return f"v{self.version:03d}"
 
+
+def get_full_path(self):
     dir = self.directory
-    name = self.filename
+    name = self.name
     use_ver = self.use_version
-    ver = f".v{self.version:03d}"
+    ver = self.version_str
     ext = self.extension
 
     if not dir or dir.strip() == "//":
@@ -47,9 +51,9 @@ def get_full_path(self):
         dir += "/"
 
     if use_ver:
-        path = f"{dir}{name}{ver}{ext}"
-    else:
-        path = f"{dir}{name}{ext}"
+        ver = "." + ver
+
+    path = f"{dir}{name}{ver}{ext}"
 
     return path
 
@@ -62,7 +66,7 @@ class FileProperties(bpy.types.PropertyGroup):
         default="//",
     )
 
-    filename: bpy.props.StringProperty(
+    name: bpy.props.StringProperty(
         name="File Name",
         description="Base name for playblast file",
         default="playblast",
@@ -92,6 +96,18 @@ class FileProperties(bpy.types.PropertyGroup):
         default=".mp4",
     )
 
+    # Read-only properties
+    # Get version string from the version number.
+    # If version is 1, return v001.
+    # If use_version is False, return empty string.
+    version_str: bpy.props.StringProperty(
+        name="Version String",
+        description="Version string calculated from the version number",
+        get=get_version_str,
+    )
+
+    # Read-only properties
+    # Join all parts to get the absolute full path.
     full_path: bpy.props.StringProperty(
         name="Full Path",
         description="Full path to the playblast file",

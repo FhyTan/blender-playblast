@@ -13,7 +13,7 @@
 
 import bpy
 
-from .callback import frame_change_post_handler
+from .handlers import draw_text_in_viewport_handler
 from .operators import PlayblastOperator
 from .panels import PlayblastBurnInPanel, PlayblastFilePanel, PlayblastPanel
 from .properties import (
@@ -22,7 +22,6 @@ from .properties import (
     PlayblastProperties,
     VideoProperties,
 )
-from .render import draw_burn_in_text_in_viewport
 
 draw_handler = None
 
@@ -47,9 +46,8 @@ def register():
 
     # Register Handlers
     draw_handler = bpy.types.SpaceView3D.draw_handler_add(
-        draw_burn_in_text_in_viewport, (), "WINDOW", "POST_PIXEL"
+        draw_text_in_viewport_handler, (), "WINDOW", "POST_PIXEL"
     )
-    bpy.app.handlers.frame_change_post.append(frame_change_post_handler)
 
     print(__name__, "registered")
 
@@ -58,7 +56,6 @@ def unregister():
     global draw_handler
 
     # Unregister Handlers
-    bpy.app.handlers.frame_change_post.remove(frame_change_post_handler)
     if draw_handler is not None:
         bpy.types.SpaceView3D.draw_handler_remove(draw_handler, "WINDOW")
 

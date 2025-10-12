@@ -41,7 +41,7 @@ class PlayblastFilePanel(bpy.types.Panel):
         col = layout.column()
 
         col.prop(file_props, "directory")
-        col.prop(file_props, "filename")
+        col.prop(file_props, "name")
 
         row = col.row(align=True, heading="Version")
         row.prop(file_props, "use_version", text="")

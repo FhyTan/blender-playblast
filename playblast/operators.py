@@ -1,8 +1,13 @@
 import os
 import shutil
 import tempfile
+from typing import Dict
 
 import bpy
+import mathutils
+
+from .metadata import MetaData, get_metadata
+from .text import get_bfont_path, iter_corner_text
 
 
 class PlayblastOperator(bpy.types.Operator):
@@ -21,14 +26,14 @@ class PlayblastOperator(bpy.types.Operator):
             if self.frame_render <= context.scene.frame_end:
                 # Render single frame
                 context.scene.frame_set(self.frame_render)
-                context.scene.render.filepath = os.path.join(
-                    self.temp_dir, f"{self.frame_render:04d}.png"
-                )
+                context.scene.render.filepath = self.temp_png.format(self.frame_render)
+                self.metadata[self.frame_render] = get_metadata(context)
                 bpy.ops.render.opengl(write_still=True)
                 wm.progress_update(self.frame_render)
                 self.frame_render += 1
             else:
                 # Finish the operation
+                self.build_subtitles(context)
                 self.build_video(context)
                 self._teardown(context)
                 print("Playblast completed")
@@ -55,8 +60,13 @@ class PlayblastOperator(bpy.types.Operator):
         self._record_settings(context)
         self._setup_settings(context)
 
-        # Create temporary directory for storing rendered frames
-        self.temp_dir = tempfile.mkdtemp(prefix="blender_playblast_")
+        # Create temporary directory for storing render frames and subtitles
+        self.temp_dir = tempfile.mkdtemp(prefix="blender_playblast_").replace("\\", "/")
+        self.temp_png = self.temp_dir + "/" + "{:04d}.png"
+        self.temp_ass = self.temp_dir + "/" + "subtitles.ass"
+
+        # Record metadata for each frame
+        self.metadata: Dict[int, MetaData] = {}
 
         return {"RUNNING_MODAL"}
 
@@ -99,7 +109,7 @@ class PlayblastOperator(bpy.types.Operator):
 
         render.resolution_percentage = video_props.scale
 
-        render.use_file_extension = True
+        render.use_file_extension = False
         render.use_render_cache = False
 
         render.image_settings.file_format = "PNG"
@@ -123,6 +133,86 @@ class PlayblastOperator(bpy.types.Operator):
 
         bpy.context.scene.frame_set(self._frame_origin)
 
+    def build_subtitles(self, context: bpy.types.Context):
+        """Build subtitles of metadata for the video."""
+
+        def _frame_to_timecode(frame, fps):
+            """Convert frame number to ASS timecode format (H:MM:SS.cs)."""
+            total_seconds = frame / fps
+            hours = int(total_seconds // 3600)
+            minutes = int((total_seconds % 3600) // 60)
+            seconds = total_seconds % 60
+
+            if frame != 0:
+                seconds -= 0.01
+
+            # ASS uses centiseconds (0.01s) for the fractional part
+            return f"{hours}:{minutes:02d}:{seconds:06.2f}"
+
+        def _get_hex_color(color):
+            # Copy color list
+            color = list(color)
+
+            # # Convert scene linear to srgb
+            # color[0:3] = list(mathutils.Color(color[:3]).from_scene_linear_to_srgb())
+
+            # ASS Subtitle use reversed alpha channel
+            color[3] = 1 - color[3]
+
+            # ASS Subtitle use reversed order, it is AABBGGRR
+            color.reverse()
+
+            for i, c in enumerate(color):
+                # Convert color from 0~1 to 0~255
+                cc = int(round(c * 255))
+
+                # Convert color from dec to hex
+                color[i] = f"{cc:02X}"
+
+            return "".join(["&H", *color])
+
+        scene = context.scene
+        props = scene.playblast
+
+        template_path = os.path.join(os.path.dirname(__file__), "template.ass")
+        with open(template_path, "r", encoding="utf-8") as f:
+            template_ass = f.read()
+
+        metadata = self.metadata[scene.frame_start]
+        subtitles = template_ass.format_map(
+            {
+                "res_x": metadata["width"],
+                "res_y": metadata["height"],
+                "font_name": "bfont",
+                "font_size": props.burn_in.font_size,
+                "font_color": _get_hex_color(props.burn_in.color),
+            }
+        )
+        fps = metadata["frame_rate"]
+
+        dialogues = []
+        template_dialogue = (
+            "Dialogue: 0,{start},{end},default,,0,0,0,,{{\\an1\\pos({x},{y})}}{text}"
+        )
+        for frame in range(scene.frame_start, scene.frame_end + 1):
+            metadata = self.metadata[frame]
+            for text in iter_corner_text(metadata):
+                dialogues.append(
+                    template_dialogue.format(
+                        start=_frame_to_timecode(frame - scene.frame_start, fps),
+                        end=_frame_to_timecode(frame - scene.frame_start + 1, fps),
+                        text=text.text,
+                        x=text.rect.x,
+                        y=text.rect.y,
+                    )
+                )
+
+        subtitles += "\n".join(dialogues)
+
+        # Save subtitles to temporary folder
+        with open(self.temp_ass, "w", encoding="utf-8") as f:
+            f.write(subtitles)
+
     def build_video(self, context: bpy.types.Context):
         """Build video from the rendered frames using ffmpeg."""
 
@@ -136,6 +226,10 @@ class PlayblastOperator(bpy.types.Operator):
 
         codec = video_props.codec
 
+        bfont_path = os.path.basename(get_bfont_path())
+        escape_bfont_path = bfont_path.replace(":", "\\:")
+        escape_ass_path = self.temp_ass.replace(":", "\\:")
+
         ffmpeg_cmd = (
             f"ffmpeg "
             f"-y "
@@ -143,9 +237,10 @@ class PlayblastOperator(bpy.types.Operator):
             f"-start_number {context.scene.frame_start} "
             f'-i "{input_pattern}" '
             f"-c:v {codec} "
-            f"-frames:v {context.scene.frame_end - context.scene.frame_start + 1} "
             f"-crf 23 "
             f"-pix_fmt yuv420p "
+            f"-frames:v {context.scene.frame_end - context.scene.frame_start + 1} "
+            f"-vf \"subtitles='{escape_ass_path}':fontsdir='{escape_bfont_path}'\" "
             f'"{output_path}"'
         )
 
@@ -155,5 +250,6 @@ class PlayblastOperator(bpy.types.Operator):
         if result != 0:
             self.report({"ERROR"}, "Failed to build video with ffmpeg.")
         else:
-            self.report({"INFO"}, f"Playblast saved to {output_path}")
-            print(f"Playblast saved to {output_path}")
+            self.report({"INFO"}, f"Playblast saved to {output_path}, opening file.")
+            print(f"Playblast saved to {output_path}, opening file.")
+            os.startfile(output_path)
