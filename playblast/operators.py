@@ -1,13 +1,13 @@
 import os
 import shutil
 import tempfile
+from pathlib import Path
 from typing import Dict
 
 import bpy
-import mathutils
 
 from .metadata import MetaData, get_metadata
-from .text import get_bfont_path, iter_corner_text
+from .utils import get_bfont_path
 
 
 class PlayblastOperator(bpy.types.Operator):
@@ -64,6 +64,13 @@ class PlayblastOperator(bpy.types.Operator):
         self.temp_dir = tempfile.mkdtemp(prefix="blender_playblast_").replace("\\", "/")
         self.temp_png = self.temp_dir + "/" + "{:04d}.png"
         self.temp_ass = self.temp_dir + "/" + "subtitles.ass"
+
+        # Font
+        self.font_path: Path = context.scene.playblast.burn_in.font_family
+        if not self.font_path or not os.path.exists(self.font_path):
+            self.font_path = get_bfont_path()
+        else:
+            self.font_path = Path(self.font_path)
 
         # Record metadata for each frame
         self.metadata: Dict[int, MetaData] = {}
@@ -136,7 +143,7 @@ class PlayblastOperator(bpy.types.Operator):
     def build_subtitles(self, context: bpy.types.Context):
         """Build subtitles of metadata for the video."""
 
-        def _frame_to_timecode(frame, fps):
+        def frame_to_timecode(frame, fps):
             """Convert frame number to ASS timecode format (H:MM:SS.cs)."""
             total_seconds = frame / fps
             hours = int(total_seconds // 3600)
@@ -149,7 +156,7 @@ class PlayblastOperator(bpy.types.Operator):
             # ASS uses centiseconds (0.01s) for the fractional part
             return f"{hours}:{minutes:02d}:{seconds:06.2f}"
 
-        def _get_hex_color(color):
+        def get_hex_color(color):
             # Copy color list
             color = list(color)
 
@@ -179,33 +186,78 @@ class PlayblastOperator(bpy.types.Operator):
             template_ass = f.read()
 
         metadata = self.metadata[scene.frame_start]
-        subtitles = template_ass.format_map(
-            {
-                "res_x": metadata["width"],
-                "res_y": metadata["height"],
-                "font_name": "bfont",
-                "font_size": props.burn_in.font_size,
-                "font_color": _get_hex_color(props.burn_in.color),
-            }
-        )
+        res_x = metadata["width"]
+        res_y = metadata["height"]
         fps = metadata["frame_rate"]
 
-        dialogues = []
-        template_dialogue = (
-            "Dialogue: 0,{start},{end},default,,0,0,0,,{{\\an1\\pos({x},{y})}}{text}"
+        subtitles = template_ass.format_map(
+            {
+                "res_x": res_x,
+                "res_y": res_y,
+                "font_name": self.font_path.stem,
+                "font_size": props.burn_in.font_size,
+                "font_color": get_hex_color(props.burn_in.color),
+            }
         )
+
+        margin = props.burn_in.margin
+        dialogues = []
+        template_dialogue = "Dialogue: 0,{start},{end},default,,0,0,0,,{{\\an{align}\\pos({x},{y})}}{text}"
         for frame in range(scene.frame_start, scene.frame_end + 1):
             metadata = self.metadata[frame]
-            for text in iter_corner_text(metadata):
-                dialogues.append(
-                    template_dialogue.format(
-                        start=_frame_to_timecode(frame - scene.frame_start, fps),
-                        end=_frame_to_timecode(frame - scene.frame_start + 1, fps),
-                        text=text.text,
-                        x=text.rect.x,
-                        y=text.rect.y,
-                    )
+            start = frame_to_timecode(frame - scene.frame_start, fps)
+            end = frame_to_timecode(frame - scene.frame_start + 1, fps)
+
+            # Notice that the origin (0,0) is at the top-left corner for ass subtitles
+            for pos in (
+                "top_left",
+                "top_center",
+                "top_right",
+                "bottom_left",
+                "bottom_center",
+                "bottom_right",
+            ):
+                text = getattr(props.burn_in, f"{pos}")
+                try:
+                    text = text.format_map(metadata)
+                except Exception:
+                    self.report(f'Error burn in text in {pos}: "{text}"')
+                    continue
+
+                if pos == "top_left":
+                    align = "7"
+                    x = margin
+                    y = margin
+                elif pos == "top_center":
+                    align = "8"
+                    x = res_x // 2
+                    y = margin
+                elif pos == "top_right":
+                    align = "9"
+                    x = res_x - margin
+                    y = margin
+                elif pos == "bottom_left":
+                    align = "1"
+                    x = margin
+                    y = res_y - margin
+                elif pos == "bottom_center":
+                    align = "2"
+                    x = res_x // 2
+                    y = res_y - margin
+                elif pos == "bottom_right":
+                    align = "3"
+                    x = res_x - margin
+                    y = res_y - margin
+
+                dialogue = template_dialogue.format(
+                    start=start,
+                    end=end,
+                    align=align,
+                    x=x,
+                    y=y,
+                    text=text,
                 )
+                dialogues.append(dialogue)
 
         subtitles += "\n".join(dialogues)
 
@@ -226,8 +278,7 @@ class PlayblastOperator(bpy.types.Operator):
 
         codec = video_props.codec
 
-        bfont_path = os.path.basename(get_bfont_path())
-        escape_bfont_path = bfont_path.replace(":", "\\:")
+        escape_font_path = self.font_path.parent.as_posix().replace(":", "\\:")
         escape_ass_path = self.temp_ass.replace(":", "\\:")
 
         ffmpeg_cmd = (
@@ -240,7 +291,7 @@ class PlayblastOperator(bpy.types.Operator):
             f"-crf 23 "
             f"-pix_fmt yuv420p "
             f"-frames:v {context.scene.frame_end - context.scene.frame_start + 1} "
-            f"-vf \"subtitles='{escape_ass_path}':fontsdir='{escape_bfont_path}'\" "
+            f"-vf \"subtitles='{escape_ass_path}':fontsdir='{escape_font_path}'\" "
             f'"{output_path}"'
         )
 

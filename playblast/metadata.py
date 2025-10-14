@@ -45,10 +45,10 @@ def get_metadata(context: bpy.types.Context, datetime_: datetime = None) -> Meta
     # Get camera info
     camera = scene.camera
     if camera and camera.type == "CAMERA":
-        camera_focal = camera.data.lens
+        camera_focal = f"{camera.data.lens:.2f}"
         camera_name = camera.name
     else:
-        camera_focal = 0.0
+        camera_focal = ""
         camera_name = ""
 
     datetime_ = datetime_ or datetime.now()
