@@ -26,6 +26,12 @@ class VideoProperties(bpy.types.PropertyGroup):
         max=100,
     )
 
+    include_audio: bpy.props.BoolProperty(
+        name="Include Audio",
+        description="Include audio in the playblast video",
+        default=True,
+    )
+
 
 def get_version_str(self):
     if not self.use_version:

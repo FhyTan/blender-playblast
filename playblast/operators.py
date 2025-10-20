@@ -7,7 +7,8 @@ from typing import Dict
 import bpy
 
 from .metadata import MetaData, get_metadata
-from .utils import get_bfont_path
+from .paths import bfont_path, template_ass_path
+from .utils import get_full_font_name
 
 
 class PlayblastOperator(bpy.types.Operator):
@@ -18,34 +19,6 @@ class PlayblastOperator(bpy.types.Operator):
     @classmethod
     def poll(cls, context: bpy.types.Context) -> bool:
         return True
-
-    def modal(self, context, event):
-        wm = context.window_manager
-
-        if event.type == "TIMER":
-            if self.frame_render <= context.scene.frame_end:
-                # Render single frame
-                context.scene.frame_set(self.frame_render)
-                context.scene.render.filepath = self.temp_png.format(self.frame_render)
-                self.metadata[self.frame_render] = get_metadata(context)
-                bpy.ops.render.opengl(write_still=True)
-                wm.progress_update(self.frame_render)
-                self.frame_render += 1
-            else:
-                # Finish the operation
-                self.build_subtitles(context)
-                self.build_video(context)
-                self._teardown(context)
-                print("Playblast completed")
-                return {"FINISHED"}
-
-        if event.type in {"ESC"}:
-            # Cancel the operation
-            self._teardown(context)
-            print("Playblast canceled")
-            return {"CANCELLED"}
-
-        return {"PASS_THROUGH"}
 
     def invoke(self, context: bpy.types.Context, event: bpy.types.Event):
         self.frame_render = context.scene.frame_start
@@ -64,18 +37,49 @@ class PlayblastOperator(bpy.types.Operator):
         self.temp_dir = tempfile.mkdtemp(prefix="blender_playblast_").replace("\\", "/")
         self.temp_png = self.temp_dir + "/" + "{:04d}.png"
         self.temp_ass = self.temp_dir + "/" + "subtitles.ass"
+        self.temp_aud = self.temp_dir + "/" + "audio.mp3"
 
         # Font
         self.font_path: Path = context.scene.playblast.burn_in.font_family
         if not self.font_path or not os.path.exists(self.font_path):
-            self.font_path = get_bfont_path()
+            self.font_path = bfont_path
         else:
             self.font_path = Path(self.font_path)
 
         # Record metadata for each frame
         self.metadata: Dict[int, MetaData] = {}
 
+        self.report({"INFO"}, "Playblast started, press ESC to cancel it")
+
         return {"RUNNING_MODAL"}
+
+    def modal(self, context, event):
+        wm = context.window_manager
+
+        if event.type == "TIMER":
+            if self.frame_render <= context.scene.frame_end:
+                # Render single frame
+                context.scene.frame_set(self.frame_render)
+                context.scene.render.filepath = self.temp_png.format(self.frame_render)
+                self.metadata[self.frame_render] = get_metadata(context)
+                bpy.ops.render.opengl(write_still=True)
+                wm.progress_update(self.frame_render)
+                self.frame_render += 1
+            else:
+                # Finish the operation
+                self.build_subtitles(context)
+                self.build_audio(context)
+                self.build_video(context)
+                self._teardown(context)
+                return {"FINISHED"}
+
+        if event.type in {"ESC"}:
+            # Cancel the operation
+            self._teardown(context)
+            self.report({"INFO"}, "Playblast canceled")
+            return {"CANCELLED"}
+
+        return {"PASS_THROUGH"}
 
     def _teardown(self, context: bpy.types.Context):
         """Clear and recover everything after playblast is done."""
@@ -181,8 +185,7 @@ class PlayblastOperator(bpy.types.Operator):
         scene = context.scene
         props = scene.playblast
 
-        template_path = os.path.join(os.path.dirname(__file__), "template.ass")
-        with open(template_path, "r", encoding="utf-8") as f:
+        with open(template_ass_path, "r", encoding="utf-8") as f:
             template_ass = f.read()
 
         metadata = self.metadata[scene.frame_start]
@@ -194,7 +197,7 @@ class PlayblastOperator(bpy.types.Operator):
             {
                 "res_x": res_x,
                 "res_y": res_y,
-                "font_name": self.font_path.stem,
+                "font_name": get_full_font_name(self.font_path),
                 "font_size": props.burn_in.font_size,
                 "font_color": get_hex_color(props.burn_in.color),
             }
@@ -265,16 +268,30 @@ class PlayblastOperator(bpy.types.Operator):
         with open(self.temp_ass, "w", encoding="utf-8") as f:
             f.write(subtitles)
 
+    def build_audio(self, context: bpy.types.Context):
+        """Build audio file use blender's built-in tools."""
+
+        props = context.scene.playblast.video
+        if not props.include_audio:
+            return
+
+        # Render audio
+        bpy.ops.sound.mixdown(
+            filepath=self.temp_aud,
+            container="MP3",
+            codec="MP3",
+        )
+
     def build_video(self, context: bpy.types.Context):
         """Build video from the rendered frames using ffmpeg."""
 
         props = context.scene.playblast
         file_props = props.file
         video_props = props.video
+        include_audio = video_props.include_audio
 
         output_path = file_props.full_path
-        input_pattern = os.path.join(self.temp_dir, "%04d.png")
-        input_pattern = input_pattern.replace("\\", "/")
+        png_pattern = self.temp_dir + "/%04d.png"
 
         codec = video_props.codec
 
@@ -282,18 +299,22 @@ class PlayblastOperator(bpy.types.Operator):
         escape_ass_path = self.temp_ass.replace(":", "\\:")
 
         ffmpeg_cmd = (
-            f"ffmpeg "
-            f"-y "
-            f"-framerate {context.scene.render.fps} "
-            f"-start_number {context.scene.frame_start} "
-            f'-i "{input_pattern}" '
-            f"-c:v {codec} "
-            f"-crf 23 "
-            f"-pix_fmt yuv420p "
-            f"-frames:v {context.scene.frame_end - context.scene.frame_start + 1} "
-            f"-vf \"subtitles='{escape_ass_path}':fontsdir='{escape_font_path}'\" "
+            "ffmpeg " +
+            "-y " +
+            f"-framerate {context.scene.render.fps} " +
+            f"-start_number {context.scene.frame_start} " +
+            f'-i "{png_pattern}" ' +
+            (f'-i "{self.temp_aud}" ' if include_audio else "") +
+            f"-c:v {codec} " +
+            ("-c:a copy " if include_audio else "") +
+            "-map 0:v:0 " +
+            ("-map 1:a:0 " if include_audio else "") +
+            "-crf 23 " +
+            "-pix_fmt yuv420p " +
+            f"-frames:v {context.scene.frame_end - context.scene.frame_start + 1} " +
+            f"-vf \"subtitles='{escape_ass_path}':fontsdir='{escape_font_path}'\" " +
             f'"{output_path}"'
-        )
+        )  # fmt: skip
 
         print("Executing command:", ffmpeg_cmd)
         result = os.system(ffmpeg_cmd)
@@ -301,6 +322,7 @@ class PlayblastOperator(bpy.types.Operator):
         if result != 0:
             self.report({"ERROR"}, "Failed to build video with ffmpeg.")
         else:
-            self.report({"INFO"}, f"Playblast saved to {output_path}, opening file.")
-            print(f"Playblast saved to {output_path}, opening file.")
+            self.report(
+                {"INFO"}, f"Playblast completed, saved to {output_path}, opening file."
+            )
             os.startfile(output_path)

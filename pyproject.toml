@@ -1,0 +1,15 @@
+[project]
+name = "blender-playblast"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fonttools>=4.60.1",
+]
+
+[dependency-groups]
+dev = [
+    "bpy>=4.5.3",
+    "fake-bpy-module>=20251003",
+]

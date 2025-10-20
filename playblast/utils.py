@@ -1,11 +1,11 @@
-from pathlib import Path
+from fontTools import ttLib
 
 
-def get_bfont_path() -> Path:
-    """
-    Since Blender's built-in font cannot be directly used in ffmpeg,
-    I extracted it from the source code to a separate TTF file.
-    For consistency, this plugin uses this font as the default.
-    """
+def get_full_font_name(ttf_path: str) -> str:
+    with ttLib.TTFont(ttf_path) as font:
+        full_name = font["name"].getDebugName(4)
+    return full_name
 
-    return Path(__file__).parent / "bfont.ttf"
+
+if __name__ == "__main__":
+    print(get_full_font_name("C:/Windows/Fonts/segoeprb.ttf"))

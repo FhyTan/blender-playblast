@@ -20,6 +20,7 @@ class PlayblastPanel(bpy.types.Panel):
         col = layout.column()
         col.prop(video_props, "codec")
         col.prop(video_props, "scale")
+        col.prop(video_props, "include_audio")
 
 
 class PlayblastFilePanel(bpy.types.Panel):

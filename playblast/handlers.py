@@ -1,7 +1,7 @@
 import logging
 import os
 from typing import List, Tuple
-from zipfile import Path
+from pathlib import Path
 
 import blf
 import bpy
@@ -10,7 +10,7 @@ from bpy_extras.view3d_utils import location_3d_to_region_2d
 from gpu_extras.batch import batch_for_shader
 
 from .metadata import get_metadata
-from .utils import get_bfont_path
+from .paths import bfont_path
 
 logger = logging.getLogger(__name__)
 
@@ -96,7 +96,7 @@ def draw_text_in_viewport_handler():
     # Get font properties
     font_path = props.font_family
     if not font_path or not os.path.exists(font_path):
-        font_path = get_bfont_path()
+        font_path = bfont_path
     else:
         font_path = Path(font_path)
     font_id = blf.load(font_path.as_posix())
