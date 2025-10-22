@@ -1,7 +1,6 @@
-import os
-import tempfile
-
 import bpy
+
+from .paths import TEMPORARY_OUTPUT_DIR
 
 
 class VideoProperties(bpy.types.PropertyGroup):
@@ -50,7 +49,7 @@ def get_full_path(self):
         dir = bpy.path.abspath("//")
 
     if not dir:
-        dir = os.path.join(tempfile.gettempdir(), "blender_playblast")
+        dir = TEMPORARY_OUTPUT_DIR.as_posix()
 
     dir = dir.replace("\\", "/")
     if not dir.endswith("/"):
@@ -67,9 +66,11 @@ def get_full_path(self):
 class FileProperties(bpy.types.PropertyGroup):
     directory: bpy.props.StringProperty(
         name="Directory",
-        description="Directory to save playblast file",
+        description="Directory to save playblast file.\n"
+        "If not specified, use current blend file directory.\n"
+        "Or use system temp directory if blend file is not saved.",
         subtype="DIR_PATH",
-        default="//",
+        default="",
     )
 
     name: bpy.props.StringProperty(
@@ -102,21 +103,19 @@ class FileProperties(bpy.types.PropertyGroup):
         default=".mp4",
     )
 
-    # Read-only properties
-    # Get version string from the version number.
-    # If version is 1, return v001.
-    # If use_version is False, return empty string.
     version_str: bpy.props.StringProperty(
         name="Version String",
-        description="Version string calculated from the version number",
+        description="Read-only properties.\n"
+        "Get version string from the version number."
+        "If version is 1, return v001."
+        "Else return empty string.",
         get=get_version_str,
     )
 
-    # Read-only properties
-    # Join all parts to get the absolute full path.
     full_path: bpy.props.StringProperty(
         name="Full Path",
-        description="Full path to the playblast file",
+        description="Read-only properties.\n"
+        "Join all parts to get the full path of the playblast file.",
         get=get_full_path,
     )
 
@@ -167,7 +166,7 @@ class BurnInProperties(bpy.types.PropertyGroup):
     top_left: bpy.props.StringProperty(
         name="Top Left",
         description="Text to display in the top left corner",
-        default=r"File: {filename}.{version}",
+        default=r"File: {file_name}.{file_version}",
     )
 
     top_center: bpy.props.StringProperty(
@@ -191,7 +190,7 @@ class BurnInProperties(bpy.types.PropertyGroup):
     bottom_center: bpy.props.StringProperty(
         name="Bottom Center",
         description="Text to display in the bottom center",
-        default=r"Camera: {camera_name} {focal_length}mm",
+        default=r"Camera: {camera_name} {camera_focal}mm",
     )
 
     bottom_right: bpy.props.StringProperty(
@@ -205,3 +204,13 @@ class PlayblastProperties(bpy.types.PropertyGroup):
     video: bpy.props.PointerProperty(type=VideoProperties)
     file: bpy.props.PointerProperty(type=FileProperties)
     burn_in: bpy.props.PointerProperty(type=BurnInProperties)
+
+    first_load: bpy.props.BoolProperty(
+        name="First Load",
+        description="Internal property.\n"
+        "Indicate if this is the first time loading the playblast settings.\n"
+        "If true, load default settings from the saved json file.\n"
+        "It will be set and persisted to false after the first load.",
+        default=True,
+        options={"HIDDEN"},
+    )

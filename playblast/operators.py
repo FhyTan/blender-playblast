@@ -1,20 +1,23 @@
+import json
 import os
 import shutil
 import tempfile
+from datetime import datetime
 from pathlib import Path
 from typing import Dict
 
 import bpy
+from bpy_extras.io_utils import ExportHelper, ImportHelper
 
 from .metadata import MetaData, get_metadata
-from .paths import bfont_path, template_ass_path
+from .paths import BFONT_PATH, DEFAULT_SETTINGS_FILE, TEMPLATE_ASS_PATH
 from .utils import get_full_font_name
 
 
 class PlayblastOperator(bpy.types.Operator):
-    bl_idname = "render.playblast"
-    bl_label = "Playblast"
-    bl_description = "Create a playblast of the current scene"
+    bl_idname = "playblast.run"
+    bl_label = "Run Playblast"
+    bl_description = "Create a playblast video of the current scene"
 
     @classmethod
     def poll(cls, context: bpy.types.Context) -> bool:
@@ -42,12 +45,13 @@ class PlayblastOperator(bpy.types.Operator):
         # Font
         self.font_path: Path = context.scene.playblast.burn_in.font_family
         if not self.font_path or not os.path.exists(self.font_path):
-            self.font_path = bfont_path
+            self.font_path = BFONT_PATH
         else:
             self.font_path = Path(self.font_path)
 
         # Record metadata for each frame
         self.metadata: Dict[int, MetaData] = {}
+        self.datetime = datetime.now()
 
         self.report({"INFO"}, "Playblast started, press ESC to cancel it")
 
@@ -61,7 +65,7 @@ class PlayblastOperator(bpy.types.Operator):
                 # Render single frame
                 context.scene.frame_set(self.frame_render)
                 context.scene.render.filepath = self.temp_png.format(self.frame_render)
-                self.metadata[self.frame_render] = get_metadata(context)
+                self.metadata[self.frame_render] = get_metadata(context, self.datetime)
                 bpy.ops.render.opengl(write_still=True)
                 wm.progress_update(self.frame_render)
                 self.frame_render += 1
@@ -185,7 +189,7 @@ class PlayblastOperator(bpy.types.Operator):
         scene = context.scene
         props = scene.playblast
 
-        with open(template_ass_path, "r", encoding="utf-8") as f:
+        with open(TEMPLATE_ASS_PATH, "r", encoding="utf-8") as f:
             template_ass = f.read()
 
         metadata = self.metadata[scene.frame_start]
@@ -298,6 +302,9 @@ class PlayblastOperator(bpy.types.Operator):
         escape_font_path = self.font_path.parent.as_posix().replace(":", "\\:")
         escape_ass_path = self.temp_ass.replace(":", "\\:")
 
+        # Ensure output path exists
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+
         ffmpeg_cmd = (
             "ffmpeg " +
             "-y " +
@@ -326,3 +333,95 @@ class PlayblastOperator(bpy.types.Operator):
                 {"INFO"}, f"Playblast completed, saved to {output_path}, opening file."
             )
             os.startfile(output_path)
+
+
+class SaveAsDefaultOperator(bpy.types.Operator):
+    bl_idname = "playblast.save_as_default"
+    bl_label = "Save As Default"
+    bl_description = "Save the current playblast settings as default, then your new blender file will use these playblast settings as default."
+
+    def execute(self, context):
+        bpy.ops.playblast.export_settings(filepath=DEFAULT_SETTINGS_FILE.as_posix())
+        self.report(
+            {"INFO"},
+            "Default playblast settings saved. New blender files will use these settings.",
+        )
+        return {"FINISHED"}
+
+
+class ImportSettingsOperator(bpy.types.Operator, ImportHelper):
+    bl_idname = "playblast.import_settings"
+    bl_label = "Import Settings"
+    bl_description = "Import playblast settings from a file"
+
+    filename_ext = ".json"
+    filter_glob: bpy.props.StringProperty(default="*.json", options={"HIDDEN"})
+
+    def execute(self, context):
+        props = context.scene.playblast
+        with open(self.filepath, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        props.video.codec = data.get("video.codec", props.video.codec)
+        props.video.include_audio = data.get(
+            "video.include_audio", props.video.include_audio
+        )
+        props.file.extension = data.get("file.extension", props.file.extension)
+        props.burn_in.enable = data.get("burn_in.enable", props.burn_in.enable)
+        props.burn_in.preview = data.get("burn_in.preview", props.burn_in.preview)
+        props.burn_in.font_family = data.get(
+            "burn_in.font_family", props.burn_in.font_family
+        )
+        props.burn_in.font_size = data.get("burn_in.font_size", props.burn_in.font_size)
+        props.burn_in.margin = data.get("burn_in.margin", props.burn_in.margin)
+        props.burn_in.color = data.get("burn_in.color", list(props.burn_in.color))
+        props.burn_in.top_left = data.get("burn_in.top_left", props.burn_in.top_left)
+        props.burn_in.top_center = data.get(
+            "burn_in.top_center", props.burn_in.top_center
+        )
+        props.burn_in.top_right = data.get("burn_in.top_right", props.burn_in.top_right)
+        props.burn_in.bottom_left = data.get(
+            "burn_in.bottom_left", props.burn_in.bottom_left
+        )
+        props.burn_in.bottom_center = data.get(
+            "burn_in.bottom_center", props.burn_in.bottom_center
+        )
+        props.burn_in.bottom_right = data.get(
+            "burn_in.bottom_right", props.burn_in.bottom_right
+        )
+
+        return {"FINISHED"}
+
+
+class ExportSettingsOperator(bpy.types.Operator, ExportHelper):
+    bl_idname = "playblast.export_settings"
+    bl_label = "Export Settings"
+    bl_description = "Export current playblast settings to a file"
+
+    filename_ext = ".json"
+    filter_glob: bpy.props.StringProperty(default="*.json", options={"HIDDEN"})
+
+    def execute(self, context: bpy.types.Context):
+        props = context.scene.playblast
+        data = {
+            "video.codec": props.video.codec,
+            "video.include_audio": props.video.include_audio,
+            "file.extension": props.file.extension,
+            "burn_in.enable": props.burn_in.enable,
+            "burn_in.preview": props.burn_in.preview,
+            "burn_in.font_family": props.burn_in.font_family,
+            "burn_in.font_size": props.burn_in.font_size,
+            "burn_in.margin": props.burn_in.margin,
+            "burn_in.color": list(props.burn_in.color),
+            "burn_in.top_left": props.burn_in.top_left,
+            "burn_in.top_center": props.burn_in.top_center,
+            "burn_in.top_right": props.burn_in.top_right,
+            "burn_in.bottom_left": props.burn_in.bottom_left,
+            "burn_in.bottom_center": props.burn_in.bottom_center,
+            "burn_in.bottom_right": props.burn_in.bottom_right,
+        }
+
+        with open(self.filepath, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=4, ensure_ascii=False)
+
+        return {"FINISHED"}

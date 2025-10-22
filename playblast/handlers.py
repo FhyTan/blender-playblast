@@ -1,7 +1,7 @@
 import logging
 import os
-from typing import List, Tuple
 from pathlib import Path
+from typing import List, Tuple
 
 import blf
 import bpy
@@ -10,7 +10,7 @@ from bpy_extras.view3d_utils import location_3d_to_region_2d
 from gpu_extras.batch import batch_for_shader
 
 from .metadata import get_metadata
-from .paths import bfont_path
+from .paths import BFONT_PATH, DEFAULT_SETTINGS_FILE
 
 logger = logging.getLogger(__name__)
 
@@ -96,7 +96,7 @@ def draw_text_in_viewport_handler():
     # Get font properties
     font_path = props.font_family
     if not font_path or not os.path.exists(font_path):
-        font_path = bfont_path
+        font_path = BFONT_PATH
     else:
         font_path = Path(font_path)
     font_id = blf.load(font_path.as_posix())
@@ -172,3 +172,15 @@ def draw_text_in_viewport_handler():
         pos_x, pos_y = get_position(width)
         blf.position(font_id, pos_x, pos_y, 0)
         blf.draw(font_id, text)
+
+
+@bpy.app.handlers.persistent
+def load_default_settings_for_new_file(*args):
+    """Load the default playblast settings when a new Blender file is created"""
+
+    if not os.path.exists(DEFAULT_SETTINGS_FILE):
+        return
+
+    if bpy.context.scene.playblast.first_load:
+        bpy.ops.playblast.import_settings(filepath=DEFAULT_SETTINGS_FILE.as_posix())
+        bpy.context.scene.playblast.first_load = False

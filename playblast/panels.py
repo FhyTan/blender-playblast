@@ -7,6 +7,7 @@ class PlayblastPanel(bpy.types.Panel):
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "Tool"
+    bl_options = {"DEFAULT_CLOSED"}
 
     def draw(self, context):
         layout = self.layout
@@ -14,7 +15,7 @@ class PlayblastPanel(bpy.types.Panel):
         layout.use_property_decorate = False
 
         video_props = context.scene.playblast.video
-        layout.operator("render.playblast", text="Playblast", icon="RENDER_ANIMATION")
+        layout.operator("playblast.run", text="Run", icon="RENDER_ANIMATION")
         layout.separator()
 
         col = layout.column()
@@ -41,7 +42,11 @@ class PlayblastFilePanel(bpy.types.Panel):
 
         col = layout.column()
 
-        col.prop(file_props, "directory")
+        col.prop(
+            file_props,
+            "directory",
+            placeholder="Default to current blend file directory",
+        )
         col.prop(file_props, "name")
 
         row = col.row(align=True, heading="Version")
@@ -91,3 +96,27 @@ class PlayblastBurnInPanel(bpy.types.Panel):
         col.prop(burn_in_props, "bottom_left")
         col.prop(burn_in_props, "bottom_center")
         col.prop(burn_in_props, "bottom_right")
+
+
+class PlayblastSettingsPanel(bpy.types.Panel):
+    bl_idname = "VIEW3D_PT_playblast_settings"
+    bl_label = "Settings"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = "Tool"
+    bl_parent_id = "VIEW3D_PT_playblast"
+    bl_order = 2
+
+    def draw(self, context: bpy.types.Context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        col = layout.column()
+        col.operator(
+            "playblast.save_as_default", text="Save as Default", icon="FILE_TICK"
+        )
+
+        row = layout.row()
+        row.operator("playblast.import_settings", text="Import", icon="IMPORT")
+        row.operator("playblast.export_settings", text="Export", icon="EXPORT")
