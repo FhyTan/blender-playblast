@@ -24,6 +24,23 @@ class MetaData(TypedDict):
     camera_focal: float
 
 
+META_DATA_DESCRIPTIONS = {
+    "datetime": "Current date and time",
+    "width": "Playblast width in pixels",
+    "height": "Playblast height in pixels",
+    "file_name": "Name of the output file without extension",
+    "file_version": "Version string of the output file",
+    "file_ext": "File extension of the output file",
+    "file_full_name": "Full name of the output file with extension",
+    "frame_current": "Current frame number",
+    "frame_start": "Start frame of the scene",
+    "frame_end": "End frame of the scene",
+    "frame_rate": "Frame rate of the scene",
+    "camera_name": "Name of the active camera",
+    "camera_focal": "Focal length of the active camera in mm",
+}
+
+
 def get_metadata(context: bpy.types.Context, datetime_: datetime = None) -> MetaData:
     """Get the metadata for current frame in the given context."""
 

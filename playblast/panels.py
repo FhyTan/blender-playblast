@@ -1,5 +1,7 @@
 import bpy
 
+from .metadata import META_DATA_DESCRIPTIONS
+
 
 class PlayblastPanel(bpy.types.Panel):
     bl_idname = "VIEW3D_PT_playblast"
@@ -19,9 +21,16 @@ class PlayblastPanel(bpy.types.Panel):
         layout.separator()
 
         col = layout.column()
-        col.prop(video_props, "codec")
-        col.prop(video_props, "scale")
         col.prop(video_props, "include_audio")
+        col.prop(video_props, "codec", text="Video Codec")
+        col.prop(video_props, "scale", text="Resolution Scale")
+
+        row = col.row(align=True, heading="Override Range")
+        row.prop(video_props, "use_frame_range", text="")
+        sub = row.column()
+        sub.active = video_props.use_frame_range
+        sub.prop(video_props, "frame_start", text="Start")
+        sub.prop(video_props, "frame_end", text="End")
 
 
 class PlayblastFilePanel(bpy.types.Panel):
@@ -69,8 +78,13 @@ class PlayblastBurnInPanel(bpy.types.Panel):
     bl_order = 1
 
     def draw_header(self, context: bpy.types.Context):
+        layout = self.layout
+
         burn_in_props = context.scene.playblast.burn_in
-        self.layout.prop(burn_in_props, "enable", text="")
+        layout.prop(burn_in_props, "enable", text="")
+        layout.popover(
+            panel="VIEW3D_PT_playblast_burn_in_help", text="", icon="QUESTION"
+        )
 
     def draw(self, context: bpy.types.Context):
         layout = self.layout
@@ -96,6 +110,29 @@ class PlayblastBurnInPanel(bpy.types.Panel):
         col.prop(burn_in_props, "bottom_left")
         col.prop(burn_in_props, "bottom_center")
         col.prop(burn_in_props, "bottom_right")
+
+
+class PlayblastBurnInHelpPanel(bpy.types.Panel):
+    bl_idname = "VIEW3D_PT_playblast_burn_in_help"
+    bl_label = "Burn-In Data Help"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = "Tool"
+    bl_ui_units_x = 25
+    bl_options = {"INSTANCED"}
+
+    def draw(self, context: bpy.types.Context):
+        layout = self.layout
+
+        layout.label(
+            text="Use curly braces {} to denote variables in text, for example {datetime} for the current time."
+        )
+        layout.label(text="The following variables are currently available:")
+
+        grid = layout.grid_flow(row_major=True, columns=2)
+        for key, description in META_DATA_DESCRIPTIONS.items():
+            grid.label(text=f"{{{key}}}")
+            grid.label(text=description)
 
 
 class PlayblastSettingsPanel(bpy.types.Panel):

@@ -4,6 +4,12 @@ from .paths import TEMPORARY_OUTPUT_DIR
 
 
 class VideoProperties(bpy.types.PropertyGroup):
+    include_audio: bpy.props.BoolProperty(
+        name="Include Audio",
+        description="Include audio in the playblast video",
+        default=True,
+    )
+
     codec: bpy.props.EnumProperty(
         name="Codec",
         description="Video codec for playblast",
@@ -25,10 +31,24 @@ class VideoProperties(bpy.types.PropertyGroup):
         max=100,
     )
 
-    include_audio: bpy.props.BoolProperty(
-        name="Include Audio",
-        description="Include audio in the playblast video",
-        default=True,
+    use_frame_range: bpy.props.BoolProperty(
+        name="Use Frame Range",
+        description="Use specific frame range for the playblast instead of the entire scene frame range",
+        default=False,
+    )
+
+    frame_start: bpy.props.IntProperty(
+        name="Start Frame",
+        description="Start frame for the playblast",
+        default=1,
+        min=0,
+    )
+
+    frame_end: bpy.props.IntProperty(
+        name="End Frame",
+        description="End frame for the playblast",
+        default=250,
+        min=0,
     )
 
 

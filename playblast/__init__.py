@@ -39,6 +39,7 @@ def register():
     # Register Panels
     bpy.utils.register_class(panels.PlayblastPanel)
     bpy.utils.register_class(panels.PlayblastBurnInPanel)
+    bpy.utils.register_class(panels.PlayblastBurnInHelpPanel)
     bpy.utils.register_class(panels.PlayblastFilePanel)
     bpy.utils.register_class(panels.PlayblastSettingsPanel)
 
@@ -62,6 +63,7 @@ def unregister():
     # Unregister Panels
     bpy.utils.unregister_class(panels.PlayblastSettingsPanel)
     bpy.utils.unregister_class(panels.PlayblastFilePanel)
+    bpy.utils.unregister_class(panels.PlayblastBurnInHelpPanel)
     bpy.utils.unregister_class(panels.PlayblastBurnInPanel)
     bpy.utils.unregister_class(panels.PlayblastPanel)
 
