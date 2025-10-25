@@ -24,17 +24,11 @@ class PlayblastOperator(bpy.types.Operator):
         return True
 
     def invoke(self, context: bpy.types.Context, event: bpy.types.Event):
-        self.frame_render = context.scene.frame_start
-
         # Start the modal timer
         wm = context.window_manager
         self._timer = wm.event_timer_add(0.01, window=context.window)
         wm.modal_handler_add(self)
         wm.progress_begin(0, 9999)
-
-        # Record and set up settings
-        self._record_settings(context)
-        self._setup_settings(context)
 
         # Create temporary directory for storing render frames and subtitles
         self.temp_dir = tempfile.mkdtemp(prefix="blender_playblast_").replace("\\", "/")
@@ -53,6 +47,15 @@ class PlayblastOperator(bpy.types.Operator):
         self.metadata: Dict[int, MetaData] = {}
         self.datetime = datetime.now()
 
+        # Record and set up settings
+        self._record_settings(context)
+        try:
+            self._setup_settings(context)
+        except Exception as e:
+            self.report({"ERROR"}, f"Failed to set up running settings: {e}")
+            self._recover_settings(context)
+            return {"CANCELLED"}
+
         self.report({"INFO"}, "Playblast started, press ESC to cancel it")
 
         return {"RUNNING_MODAL"}
@@ -61,14 +64,16 @@ class PlayblastOperator(bpy.types.Operator):
         wm = context.window_manager
 
         if event.type == "TIMER":
-            if self.frame_render <= context.scene.frame_end:
+            frame_current = context.scene.frame_current
+            if frame_current <= context.scene.frame_end:
                 # Render single frame
-                context.scene.frame_set(self.frame_render)
-                context.scene.render.filepath = self.temp_png.format(self.frame_render)
-                self.metadata[self.frame_render] = get_metadata(context, self.datetime)
+                context.scene.render.filepath = self.temp_png.format(frame_current)
+                self.metadata[frame_current] = get_metadata(context, self.datetime)
                 bpy.ops.render.opengl(write_still=True)
-                wm.progress_update(self.frame_render)
-                self.frame_render += 1
+                wm.progress_update(frame_current)
+
+                # Move to next frame
+                context.scene.frame_set(frame_current + 1)
             else:
                 # Finish the operation
                 self.build_subtitles(context)
@@ -102,27 +107,37 @@ class PlayblastOperator(bpy.types.Operator):
     def _record_settings(self, context: bpy.types.Context):
         """Record all settings that will be changed during the playblast."""
 
-        render = context.scene.render
+        scene = context.scene
+        render = scene.render
+
+        self._resolution_percentage = render.resolution_percentage
+
+        self._frame_current = scene.frame_current
+        self._frame_start = scene.frame_start
+        self._frame_end = scene.frame_end
 
         self._filepath = render.filepath
-        self._resolution_percentage = render.resolution_percentage
         self._use_file_extension = render.use_file_extension
         self._use_render_cache = render.use_render_cache
+
         self._file_format = render.image_settings.file_format
         self._color_mode = render.image_settings.color_mode
         self._color_depth = render.image_settings.color_depth
         self._compression = render.image_settings.compression
 
-        self._frame_origin = context.scene.frame_current
-
     def _setup_settings(self, context: bpy.types.Context):
         """Set up all settings needed for the playblast."""
 
-        render = context.scene.render
-        props = context.scene.playblast
-        video_props = props.video
+        scene = context.scene
+        render = scene.render
+        props = scene.playblast
+        metadata = get_metadata(context)
 
-        render.resolution_percentage = video_props.scale
+        render.resolution_percentage = props.video.scale
+
+        scene.frame_set(metadata["frame_start"])
+        scene.frame_start = metadata["frame_start"]
+        scene.frame_end = metadata["frame_end"]
 
         render.use_file_extension = False
         render.use_render_cache = False
@@ -135,18 +150,23 @@ class PlayblastOperator(bpy.types.Operator):
     def _recover_settings(self, context: bpy.types.Context):
         """Recover all settings that were changed during the playblast."""
 
-        render = context.scene.render
+        scene = context.scene
+        render = scene.render
+
+        render.resolution_percentage = self._resolution_percentage
+
+        scene.frame_set(self._frame_current)
+        scene.frame_start = self._frame_start
+        scene.frame_end = self._frame_end
 
         render.filepath = self._filepath
-        render.resolution_percentage = self._resolution_percentage
         render.use_file_extension = self._use_file_extension
         render.use_render_cache = self._use_render_cache
+
         render.image_settings.file_format = self._file_format
         render.image_settings.color_mode = self._color_mode
         render.image_settings.color_depth = self._color_depth
         render.image_settings.compression = self._compression
-
-        bpy.context.scene.frame_set(self._frame_origin)
 
     def build_subtitles(self, context: bpy.types.Context):
         """Build subtitles of metadata for the video."""
@@ -197,17 +217,28 @@ class PlayblastOperator(bpy.types.Operator):
         res_y = metadata["height"]
         fps = metadata["frame_rate"]
 
+        # Get real name of font
+        font_name = get_full_font_name(self.font_path)
+
+        # Keep text ratio regardless of resolution scale
+        font_size = props.burn_in.font_size * props.video.scale // 100
+
+        # Get correct color format
+        font_color = get_hex_color(props.burn_in.color)
+
         subtitles = template_ass.format_map(
             {
                 "res_x": res_x,
                 "res_y": res_y,
-                "font_name": get_full_font_name(self.font_path),
-                "font_size": props.burn_in.font_size,
-                "font_color": get_hex_color(props.burn_in.color),
+                "font_name": font_name,
+                "font_size": font_size,
+                "font_color": font_color,
             }
         )
 
-        margin = props.burn_in.margin
+        # Also scale margin to keep aspect ratio
+        margin = props.burn_in.margin * props.video.scale // 100
+
         dialogues = []
         template_dialogue = "Dialogue: 0,{start},{end},default,,0,0,0,,{{\\an{align}\\pos({x},{y})}}{text}"
         for frame in range(scene.frame_start, scene.frame_end + 1):
@@ -319,7 +350,7 @@ class PlayblastOperator(bpy.types.Operator):
             "-crf 23 " +
             "-pix_fmt yuv420p " +
             f"-frames:v {context.scene.frame_end - context.scene.frame_start + 1} " +
-            f"-vf \"subtitles='{escape_ass_path}':fontsdir='{escape_font_path}'\" " +
+            f"-vf \"scale='iw+mod(iw,2)':'ih+mod(ih,2)',subtitles='{escape_ass_path}':fontsdir='{escape_font_path}'\" " +
             f'"{output_path}"'
         )  # fmt: skip
 

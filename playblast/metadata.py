@@ -54,10 +54,16 @@ def get_metadata(context: bpy.types.Context, datetime_: datetime = None) -> Meta
     res_y = int(render.resolution_y * scale / 100)
 
     # Make sure resolution is even
-    if res_x % 2 != 0:
-        res_x += 1
-    if res_y % 2 != 0:
-        res_y += 1
+    res_x += res_x % 2
+    res_y += res_y % 2
+
+    # Get frame range info
+    if props.video.use_frame_range:
+        frame_start = props.video.frame_start
+        frame_end = props.video.frame_end
+    else:
+        frame_start = scene.frame_start
+        frame_end = scene.frame_end
 
     # Get camera info
     camera = scene.camera
@@ -72,15 +78,15 @@ def get_metadata(context: bpy.types.Context, datetime_: datetime = None) -> Meta
 
     metadata: MetaData = {
         "datetime": datetime_.strftime("%Y-%m-%d %H:%M:%S"),
-        "width": int(render.resolution_x * render.resolution_percentage / 100),
-        "height": int(render.resolution_y * render.resolution_percentage / 100),
+        "width": res_x,
+        "height": res_y,
         "file_name": props.file.name,
         "file_version": props.file.version_str,
         "file_ext": props.file.extension,
         "file_full_name": os.path.basename(props.file.full_path),
         "frame_current": scene.frame_current,
-        "frame_start": scene.frame_start,
-        "frame_end": scene.frame_end,
+        "frame_start": frame_start,
+        "frame_end": frame_end,
         "frame_rate": int(render.fps),
         "camera_name": camera_name,
         "camera_focal": camera_focal,
