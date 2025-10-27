@@ -1,0 +1,353 @@
+
+msgid ""
+msgstr ""
+
+#. :src: bpy.types.PLAYBLAST_OT_export_settings
+msgctxt "Operator"
+msgid "Export Settings"
+msgstr ""
+
+#. :src: bpy.types.PLAYBLAST_OT_import_settings
+msgctxt "Operator"
+msgid "Import Settings"
+msgstr ""
+
+#. :src: bpy.types.PLAYBLAST_OT_run
+msgctxt "Operator"
+msgid "Run Playblast"
+msgstr ""
+
+#. :src: bpy.types.PLAYBLAST_OT_save_as_default
+msgctxt "Operator"
+msgid "Save As Default"
+msgstr ""
+
+#. :src: bpy.types.PLAYBLAST_OT_export_settings
+msgid "Export current playblast settings to a file"
+msgstr ""
+
+#. :src: bpy.types.PLAYBLAST_OT_import_settings
+msgid "Import playblast settings from a file"
+msgstr ""
+
+#. :src: bpy.types.PLAYBLAST_OT_run
+msgid ""
+"Create a playblast video of the current scene.\n"
+"Please ensure you have an active camera and ffmpeg is installed in your system."
+msgstr ""
+
+#. :src: bpy.types.PLAYBLAST_OT_save_as_default
+msgid "Save the current playblast settings as default, then your new blender file will use these playblast settings as default."
+msgstr ""
+
+#. :src: bpy.types.BurnInProperties.bottom_center
+msgid "Text to display in the bottom center"
+msgstr ""
+
+#. :src: bpy.types.BurnInProperties.bottom_left
+msgid "Text to display in the bottom left corner"
+msgstr ""
+
+#. :src: bpy.types.BurnInProperties.bottom_right
+msgid "Text to display in the bottom right corner"
+msgstr ""
+
+#. :src: bpy.types.BurnInProperties.color
+msgid "Color of the burn-in text"
+msgstr ""
+
+#. :src: bpy.types.BurnInProperties.enable
+msgid "Enable Burn-In Data"
+msgstr ""
+
+#. :src: bpy.types.BurnInProperties.enable
+msgid "Enable burn-in text overlay on the playblast, if not specified, use blender default font"
+msgstr ""
+
+#. :src: bpy.types.BurnInProperties.font_family
+msgid "Font Family"
+msgstr ""
+
+#. :src: bpy.types.BurnInProperties.font_family
+msgid "Font family for the burn-in text"
+msgstr ""
+
+#. :src: bpy.types.BurnInProperties.font_size
+msgid "Size of the burn-in text font"
+msgstr ""
+
+#. :src: bpy.types.BurnInProperties.margin
+msgid "Text margin from the edges of the viewport"
+msgstr ""
+
+#. :src: bpy.types.BurnInProperties.preview
+msgid "Preview in Viewport"
+msgstr ""
+
+#. :src: bpy.types.BurnInProperties.preview
+msgid ""
+"Preview the burn-in text in the 3D viewport\n"
+"You need to be in Camera view to see it"
+msgstr ""
+
+#. :src: bpy.types.BurnInProperties.top_center
+msgid "Text to display in the top center"
+msgstr ""
+
+#. :src: bpy.types.BurnInProperties.top_left
+msgid "Text to display in the top left corner"
+msgstr ""
+
+#. :src: bpy.types.BurnInProperties.top_right
+msgid "Text to display in the top right corner"
+msgstr ""
+
+#. :src: bpy.types.FileProperties.directory
+msgid ""
+"Directory to save playblast file.\n"
+"If not specified, use current blend file directory.\n"
+"Or use system temp directory if blend file is not saved."
+msgstr ""
+
+#. :src: bpy.types.FileProperties.extension
+msgid "File extension for playblast"
+msgstr ""
+
+#. :src: bpy.types.FileProperties.extension:'.mp4'
+msgid "MP4 format"
+msgstr ""
+
+#. :src: bpy.types.FileProperties.extension:'.avi'
+msgid "AVI format"
+msgstr ""
+
+#. :src: bpy.types.FileProperties.extension:'.mov'
+msgid "MOV format"
+msgstr ""
+
+#. :src: bpy.types.FileProperties.full_path
+msgid ""
+"Read-only properties.\n"
+"Join all parts to get the full path of the playblast file."
+msgstr ""
+
+#. :src: bpy.types.FileProperties.name
+msgid "Base name for playblast file"
+msgstr ""
+
+#. :src: bpy.types.FileProperties.use_version
+msgid "Use Version"
+msgstr ""
+
+#. :src: bpy.types.FileProperties.version
+msgid "Version number for the playblast file"
+msgstr ""
+
+#. :src: bpy.types.FileProperties.version_str
+msgid "Version String"
+msgstr ""
+
+#. :src: bpy.types.FileProperties.version_str
+msgid ""
+"Read-only properties.\n"
+"Get version string from the version number.If version is 1, return v001.Else return empty string."
+msgstr ""
+
+#. :src: bpy.types.PlayblastProperties.first_load
+msgid "First Load"
+msgstr ""
+
+#. :src: bpy.types.PlayblastProperties.first_load
+msgid ""
+"Internal property.\n"
+"Indicate if this is the first time loading the playblast settings.\n"
+"If true, load default settings from the saved json file.\n"
+"It will be set and persisted to false after the first load."
+msgstr ""
+
+#. :src: bpy.types.VideoProperties.codec
+msgid "Video codec for playblast"
+msgstr ""
+
+#. :src: bpy.types.VideoProperties.codec:'libx264'
+msgid "H.264 codec"
+msgstr ""
+
+#. :src: bpy.types.VideoProperties.codec:'libx265'
+msgid "H.265"
+msgstr ""
+
+#. :src: bpy.types.VideoProperties.codec:'libx265'
+msgid "HEVC codec"
+msgstr ""
+
+#. :src: bpy.types.VideoProperties.codec:'mpeg4'
+msgid "MPEG-4 codec"
+msgstr ""
+
+#. :src: bpy.types.VideoProperties.codec:'libsvtav1'
+msgid "AV1 codec"
+msgstr ""
+
+#. :src: bpy.types.VideoProperties.frame_end
+msgid "End frame for the playblast"
+msgstr ""
+
+#. :src: bpy.types.VideoProperties.frame_start
+msgid "Start frame for the playblast"
+msgstr ""
+
+#. :src: bpy.types.VideoProperties.include_audio
+msgid "Include Audio"
+msgstr ""
+
+#. :src: bpy.types.VideoProperties.include_audio
+msgid "Include audio in the playblast video"
+msgstr ""
+
+#. :src: bpy.types.VideoProperties.scale
+msgid "Scale factor for the playblast resolution"
+msgstr ""
+
+#. :src: bpy.types.VideoProperties.use_frame_range
+msgid "Use specific frame range for the playblast instead of the entire scene frame range"
+msgstr ""
+
+#: extensions/vscode_development/playblast/operators.py:75
+msgid "Playblast started, press ESC to cancel it"
+msgstr ""
+
+#: extensions/vscode_development/playblast/operators.py:398
+msgid "Default playblast settings saved. New blender files will use these settings."
+msgstr ""
+
+#: extensions/vscode_development/playblast/operators.py:34
+msgid "FFmpeg is not installed or not found in PATH."
+msgstr ""
+
+#: extensions/vscode_development/playblast/operators.py:104
+msgid "Playblast canceled"
+msgstr ""
+
+#: extensions/vscode_development/playblast/operators.py:381
+msgid "Failed to build video with ffmpeg."
+msgstr ""
+
+#: extensions/vscode_development/playblast/operators.py:384
+msgid "Playblast completed, saved to , opening file."
+msgstr ""
+
+#: extensions/vscode_development/playblast/operators.py:71
+msgid "Failed to set up running settings: "
+msgstr ""
+
+#: extensions/vscode_development/playblast/panels.py:20
+msgctxt "Operator"
+msgid "Run"
+msgstr ""
+
+#: extensions/vscode_development/playblast/panels.py:25
+msgid "Video Codec"
+msgstr ""
+
+#: extensions/vscode_development/playblast/panels.py:26
+msgid "Resolution Scale"
+msgstr ""
+
+#: extensions/vscode_development/playblast/panels.py:28
+msgid "Override Range"
+msgstr ""
+
+#: extensions/vscode_development/playblast/panels.py:32
+msgid "Start"
+msgstr ""
+
+#: extensions/vscode_development/playblast/panels.py:33
+msgid "End"
+msgstr ""
+
+#: extensions/vscode_development/playblast/panels.py:57
+msgid "Default to current blend file directory"
+msgstr ""
+
+#: extensions/vscode_development/playblast/panels.py:61
+msgid "Version"
+msgstr ""
+
+#: extensions/vscode_development/playblast/panels.py:103
+msgid "Default to Blender Font"
+msgstr ""
+
+#: extensions/vscode_development/playblast/panels.py:128
+msgid "Use curly braces {} to denote variables in text, for example {datetime} for the current time."
+msgstr ""
+
+#: extensions/vscode_development/playblast/panels.py:130
+msgid "The following variables are currently available:"
+msgstr ""
+
+#: extensions/vscode_development/playblast/panels.py:154
+msgctxt "Operator"
+msgid "Save as Default"
+msgstr ""
+
+#: extensions/vscode_development/playblast/panels.py:158
+msgctxt "Operator"
+msgid "Import"
+msgstr ""
+
+#: extensions/vscode_development/playblast/panels.py:159
+msgctxt "Operator"
+msgid "Export"
+msgstr ""
+
+#: extensions/vscode_development/playblast/panels.py:134
+msgid "{}"
+msgstr ""
+
+#: Add-on Playblast info: name
+msgid "Playblast"
+msgstr ""
+
+#: Add-on Playblast info: description
+msgid "Blender playblast tool similarly to Maya"
+msgstr ""
+
+msgid "Current date and time"
+msgstr ""
+
+msgid "Playblast width in pixels"
+msgstr ""
+
+msgid "Playblast height in pixels"
+msgstr ""
+
+msgid "Name of the output file without extension"
+msgstr ""
+
+msgid "Version string of the output file"
+msgstr ""
+
+msgid "File extension of the output file"
+msgstr ""
+
+msgid "Full name of the output file with extension"
+msgstr ""
+
+msgid "Current frame number"
+msgstr ""
+
+msgid "Start frame of the scene"
+msgstr ""
+
+msgid "End frame of the scene"
+msgstr ""
+
+msgid "Frame rate of the scene"
+msgstr ""
+
+msgid "Name of the active camera"
+msgstr ""
+
+msgid "Focal length of the active camera in mm"
+msgstr ""

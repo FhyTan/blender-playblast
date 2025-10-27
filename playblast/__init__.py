@@ -14,12 +14,16 @@
 import bpy
 
 from . import handlers, operators, panels, properties
+from .translations import translations_dict
 
 draw_handler = None
 
 
 def register():
     global draw_handler
+
+    # Register Translations
+    bpy.app.translations.register(__name__, translations_dict)
 
     # Register Operators
     bpy.utils.register_class(operators.PlayblastOperator)
@@ -79,5 +83,8 @@ def unregister():
     bpy.utils.unregister_class(operators.ImportSettingsOperator)
     bpy.utils.unregister_class(operators.SaveAsDefaultOperator)
     bpy.utils.unregister_class(operators.PlayblastOperator)
+
+    # Unregister Translations
+    bpy.app.translations.unregister(__name__)
 
     print(__name__, "unregistered")

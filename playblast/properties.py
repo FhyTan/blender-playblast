@@ -143,7 +143,7 @@ class FileProperties(bpy.types.PropertyGroup):
 class BurnInProperties(bpy.types.PropertyGroup):
     enable: bpy.props.BoolProperty(
         name="Enable Burn-In Data",
-        description="Enable burn-in text overlay on the playblast, if not specified, use blender default font",
+        description="Enable burn-in text overlay on the playblast.",
         default=True,
     )
 
