@@ -11,24 +11,29 @@ from bpy_extras.io_utils import ExportHelper, ImportHelper
 
 from .metadata import MetaData, get_metadata
 from .paths import BFONT_PATH, DEFAULT_SETTINGS_FILE, TEMPLATE_ASS_PATH
-from .utils import get_full_font_name
+from .utils import detect_ffmpeg, get_full_font_name
 
 
 class PlayblastOperator(bpy.types.Operator):
     bl_idname = "playblast.run"
     bl_label = "Run Playblast"
-    bl_description = "Create a playblast video of the current scene"
+    bl_description = (
+        "Create a playblast video of the current scene.\n"
+        "Please ensure you have an active camera and ffmpeg is installed in your system."
+    )
 
     @classmethod
     def poll(cls, context: bpy.types.Context) -> bool:
-        return True
+        return context.area.type == "VIEW_3D" and context.scene.camera is not None
 
     def invoke(self, context: bpy.types.Context, event: bpy.types.Event):
-        # Start the modal timer
-        wm = context.window_manager
-        self._timer = wm.event_timer_add(0.01, window=context.window)
-        wm.modal_handler_add(self)
-        wm.progress_begin(0, 9999)
+        # First detect whether ffmpeg is installed
+        if not detect_ffmpeg():
+            self.report(
+                {"ERROR"},
+                "FFmpeg is not installed or not found in PATH.",
+            )
+            return {"CANCELLED"}
 
         # Create temporary directory for storing render frames and subtitles
         self.temp_dir = tempfile.mkdtemp(prefix="blender_playblast_").replace("\\", "/")
@@ -36,16 +41,27 @@ class PlayblastOperator(bpy.types.Operator):
         self.temp_ass = self.temp_dir + "/" + "subtitles.ass"
         self.temp_aud = self.temp_dir + "/" + "audio.mp3"
 
-        # Font
-        self.font_path: Path = context.scene.playblast.burn_in.font_family
-        if not self.font_path or not os.path.exists(self.font_path):
-            self.font_path = BFONT_PATH
+        # Get user Specified font path and copy to temporary directory
+        # This method can avoid error log for ffmpeg
+        spec_font_path: Path = context.scene.playblast.burn_in.font_family
+        if not spec_font_path or not os.path.exists(spec_font_path):
+            spec_font_path = BFONT_PATH
         else:
-            self.font_path = Path(self.font_path)
+            spec_font_path = Path(spec_font_path)
+
+        self.temp_font = Path(self.temp_dir, "font", spec_font_path.name)
+        self.temp_font.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(spec_font_path, self.temp_font)
 
         # Record metadata for each frame
         self.metadata: Dict[int, MetaData] = {}
         self.datetime = datetime.now()
+
+        # Start the modal timer
+        wm = context.window_manager
+        self._timer = wm.event_timer_add(0.01, window=context.window)
+        wm.modal_handler_add(self)
+        wm.progress_begin(0, 9999)
 
         # Record and set up settings
         self._record_settings(context)
@@ -53,7 +69,7 @@ class PlayblastOperator(bpy.types.Operator):
             self._setup_settings(context)
         except Exception as e:
             self.report({"ERROR"}, f"Failed to set up running settings: {e}")
-            self._recover_settings(context)
+            self._teardown(context)
             return {"CANCELLED"}
 
         self.report({"INFO"}, "Playblast started, press ESC to cancel it")
@@ -147,6 +163,10 @@ class PlayblastOperator(bpy.types.Operator):
         render.image_settings.color_depth = "8"
         render.image_settings.compression = 15
 
+        # Ensure the VIEW_3D area is in camera view
+        region_3d = context.region_data
+        region_3d.view_perspective = "CAMERA"
+
     def _recover_settings(self, context: bpy.types.Context):
         """Recover all settings that were changed during the playblast."""
 
@@ -218,7 +238,7 @@ class PlayblastOperator(bpy.types.Operator):
         fps = metadata["frame_rate"]
 
         # Get real name of font
-        font_name = get_full_font_name(self.font_path)
+        font_name = get_full_font_name(self.temp_font)
 
         # Keep text ratio regardless of resolution scale
         font_size = props.burn_in.font_size * props.video.scale // 100
@@ -330,7 +350,7 @@ class PlayblastOperator(bpy.types.Operator):
 
         codec = video_props.codec
 
-        escape_font_path = self.font_path.parent.as_posix().replace(":", "\\:")
+        escape_font_path = self.temp_font.parent.as_posix().replace(":", "\\:")
         escape_ass_path = self.temp_ass.replace(":", "\\:")
 
         # Ensure output path exists
