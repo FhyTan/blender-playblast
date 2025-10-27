@@ -381,7 +381,10 @@ class PlayblastOperator(bpy.types.Operator):
             self.report({"ERROR"}, "Failed to build video with ffmpeg.")
         else:
             self.report(
-                {"INFO"}, f"Playblast completed, saved to {output_path}, opening file."
+                {"INFO"},
+                bpy.app.translations.pgettext_rpt(
+                    msgid='Playblast completed, saved to "{}", opening video...'
+                ).format(output_path),
             )
             os.startfile(output_path)
 

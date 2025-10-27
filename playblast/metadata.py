@@ -33,9 +33,9 @@ META_DATA_DESCRIPTIONS = {
     "file_ext": "File extension of the output file",
     "file_full_name": "Full name of the output file with extension",
     "frame_current": "Current frame number",
-    "frame_start": "Start frame of the scene",
-    "frame_end": "End frame of the scene",
-    "frame_rate": "Frame rate of the scene",
+    "frame_start": "Start frame of the playblast",
+    "frame_end": "End frame of the playblast",
+    "frame_rate": "Frame rate of the playblast",
     "camera_name": "Name of the active camera",
     "camera_focal": "Focal length of the active camera in mm",
 }

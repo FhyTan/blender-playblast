@@ -73,7 +73,7 @@ msgid "Enable Burn-In Data"
 msgstr "启用叠加信息"
 
 #. :src: bpy.types.BurnInProperties.enable
-msgid "Enable burn-in text overlay on the playblast, if not specified, use blender default font"
+msgid "Enable burn-in text overlay on the playblast."
 msgstr "在拍屏上启用叠加文字"
 
 #. :src: bpy.types.BurnInProperties.font_family
@@ -241,7 +241,7 @@ msgstr "使用指定的帧范围进行拍屏而非整个场景的帧范围"
 msgid "Playblast started, press ESC to cancel it"
 msgstr "拍屏已开始，按 ESC 可取消"
 
-#: extensions/vscode_development/playblast/operators.py:398
+#: extensions/vscode_development/playblast/operators.py:401
 msgid "Default playblast settings saved. New blender files will use these settings."
 msgstr "默认拍屏设置已保存。新建的 Blender 文件将使用这些设置。"
 
@@ -257,9 +257,9 @@ msgstr "拍屏已取消"
 msgid "Failed to build video with ffmpeg."
 msgstr "使用 ffmpeg 生成视频失败。"
 
-#: extensions/vscode_development/playblast/operators.py:384
-msgid "Playblast completed, saved to , opening file."
-msgstr "拍屏完成，已保存至，正在打开文件。"
+#: extensions/vscode_development/playblast/operators.py:386
+msgid "Playblast completed, saved to \"{}\", opening video..."
+msgstr "拍屏完成，已保存到 \"{}\"，正在打开视频..."
 
 #: extensions/vscode_development/playblast/operators.py:71
 msgid "Failed to set up running settings: "
@@ -333,45 +333,7 @@ msgstr ""
 msgid "Playblast"
 msgstr "拍屏"
 
-#: Add-on Playblast info: description
+#. :src: Add-on Playblast info: description
 msgid "Blender playblast tool similarly to Maya"
 msgstr "类似于 Maya 的 Blender 拍屏工具"
 
-msgid "Current date and time"
-msgstr "当前日期和时间"
-
-msgid "Playblast width in pixels"
-msgstr "拍屏宽度（像素）"
-
-msgid "Playblast height in pixels"
-msgstr "拍屏高度（像素）"
-
-msgid "Name of the output file without extension"
-msgstr "输出文件名（不含扩展名）"
-
-msgid "Version string of the output file"
-msgstr "输出文件的版本字符串"
-
-msgid "File extension of the output file"
-msgstr "输出文件的扩展名"
-
-msgid "Full name of the output file with extension"
-msgstr "包含扩展名的完整输出文件名"
-
-msgid "Current frame number"
-msgstr "当前帧数"
-
-msgid "Start frame of the scene"
-msgstr "拍屏起始帧"
-
-msgid "End frame of the scene"
-msgstr "拍屏结束帧"
-
-msgid "Frame rate of the scene"
-msgstr "拍屏帧率"
-
-msgid "Name of the active camera"
-msgstr "激活相机的名称"
-
-msgid "Focal length of the active camera in mm"
-msgstr "激活相机的焦距（毫米）"

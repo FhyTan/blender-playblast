@@ -61,7 +61,7 @@ msgid "Enable Burn-In Data"
 msgstr ""
 
 #. :src: bpy.types.BurnInProperties.enable
-msgid "Enable burn-in text overlay on the playblast, if not specified, use blender default font"
+msgid "Enable burn-in text overlay on the playblast."
 msgstr ""
 
 #. :src: bpy.types.BurnInProperties.font_family
@@ -217,7 +217,7 @@ msgstr ""
 msgid "Playblast started, press ESC to cancel it"
 msgstr ""
 
-#: extensions/vscode_development/playblast/operators.py:398
+#: extensions/vscode_development/playblast/operators.py:401
 msgid "Default playblast settings saved. New blender files will use these settings."
 msgstr ""
 
@@ -233,8 +233,8 @@ msgstr ""
 msgid "Failed to build video with ffmpeg."
 msgstr ""
 
-#: extensions/vscode_development/playblast/operators.py:384
-msgid "Playblast completed, saved to , opening file."
+#: extensions/vscode_development/playblast/operators.py:386
+msgid "Playblast completed, saved to \"{}\", opening video..."
 msgstr ""
 
 #: extensions/vscode_development/playblast/operators.py:71
@@ -313,41 +313,3 @@ msgstr ""
 msgid "Blender playblast tool similarly to Maya"
 msgstr ""
 
-msgid "Current date and time"
-msgstr ""
-
-msgid "Playblast width in pixels"
-msgstr ""
-
-msgid "Playblast height in pixels"
-msgstr ""
-
-msgid "Name of the output file without extension"
-msgstr ""
-
-msgid "Version string of the output file"
-msgstr ""
-
-msgid "File extension of the output file"
-msgstr ""
-
-msgid "Full name of the output file with extension"
-msgstr ""
-
-msgid "Current frame number"
-msgstr ""
-
-msgid "Start frame of the scene"
-msgstr ""
-
-msgid "End frame of the scene"
-msgstr ""
-
-msgid "Frame rate of the scene"
-msgstr ""
-
-msgid "Name of the active camera"
-msgstr ""
-
-msgid "Focal length of the active camera in mm"
-msgstr ""

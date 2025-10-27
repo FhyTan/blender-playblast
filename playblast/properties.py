@@ -164,7 +164,7 @@ class BurnInProperties(bpy.types.PropertyGroup):
     font_size: bpy.props.IntProperty(
         name="Font Size",
         description="Size of the burn-in text font",
-        default=20,
+        default=40,
     )
 
     margin: bpy.props.IntProperty(
@@ -186,7 +186,7 @@ class BurnInProperties(bpy.types.PropertyGroup):
     top_left: bpy.props.StringProperty(
         name="Top Left",
         description="Text to display in the top left corner",
-        default=r"File: {file_name}.{file_version}",
+        default=r"File: {file_name} {file_version}",
     )
 
     top_center: bpy.props.StringProperty(
