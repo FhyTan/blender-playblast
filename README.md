@@ -1,3 +1,5 @@
+[English](README.md) | [中文](README.zh-CN.md)
+
 # Blender Playblast Tool
 
 A plugin similar to Maya's playblast functionality that allows you to create animation previews with one click and conveniently add custom information to videos.
