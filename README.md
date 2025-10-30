@@ -4,7 +4,7 @@
 
 A plugin similar to Maya's playblast functionality that allows you to create animation previews with one click and conveniently add custom information to videos.
 
-<video controls src="images/demonstrate.mp4" title="Title"></video>
+![demonstrate](images/demonstrate.gif)
 
 ## System Requirements
 

@@ -2,7 +2,7 @@
 
 一个类似 Maya 拍屏功能的插件，让你一键拍屏预览动画，还能方便的添加自定义信息到视频上
 
-<video controls src="images/demonstrate.mp4" title="Title"></video>
+![demonstrate](images/demonstrate.gif)
 
 ## 系统要求
 
