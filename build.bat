@@ -1,1 +1,2 @@
 blender --command extension build --source-dir ./playblast --output-dir ./dist
+pause
