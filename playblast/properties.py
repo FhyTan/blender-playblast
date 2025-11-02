@@ -26,7 +26,7 @@ class VideoProperties(bpy.types.PropertyGroup):
         name="Scale",
         description="Scale factor for the playblast resolution",
         subtype="PERCENTAGE",
-        default=100,
+        default=50,
         min=1,
         max=100,
     )

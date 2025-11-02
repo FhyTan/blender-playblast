@@ -2,16 +2,18 @@ import json
 import os
 import shutil
 import tempfile
+from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
 from typing import Dict
 
 import bpy
+from bpy.app.translations import pgettext_rpt as rpt_
 from bpy_extras.io_utils import ExportHelper, ImportHelper
 
 from .metadata import MetaData, get_metadata
 from .paths import BFONT_PATH, DEFAULT_SETTINGS_FILE, TEMPLATE_ASS_PATH
-from .utils import detect_ffmpeg, get_full_font_name
+from .utils import detect_ffmpeg, get_full_font_name, play_video
 
 
 class PlayblastOperator(bpy.types.Operator):
@@ -26,7 +28,7 @@ class PlayblastOperator(bpy.types.Operator):
     def poll(cls, context: bpy.types.Context) -> bool:
         return context.area.type == "VIEW_3D" and context.scene.camera is not None
 
-    def invoke(self, context: bpy.types.Context, event: bpy.types.Event):
+    def execute(self, context: bpy.types.Context):
         # First detect whether ffmpeg is installed
         if not detect_ffmpeg():
             self.report(
@@ -57,136 +59,52 @@ class PlayblastOperator(bpy.types.Operator):
         self.metadata: Dict[int, MetaData] = {}
         self.datetime = datetime.now()
 
-        # Start the modal timer
-        wm = context.window_manager
-        self._timer = wm.event_timer_add(0.01, window=context.window)
-        wm.modal_handler_add(self)
-        wm.progress_begin(0, 9999)
+        with (
+            render_properties_override(context),
+            register_collect_metadata_handler(context),
+        ):
+            context.scene.render.filepath = self.temp_dir + "/"
+            bpy.ops.render.opengl(animation=True, view_context=True)
 
-        # Record and set up settings
-        self._record_settings(context)
-        try:
-            self._setup_settings(context)
-        except Exception as e:
-            self.report({"ERROR"}, f"Failed to set up running settings: {e}")
-            self._teardown(context)
-            return {"CANCELLED"}
+            self.metadata = context.scene.playblast["metadata"]
+            for data in self.metadata.values():
+                data["datetime"] = self.datetime.isoformat(sep=" ", timespec="seconds")
 
-        self.report({"INFO"}, "Playblast started, press ESC to cancel it")
+            self.build_subtitles(context)
+            self.build_audio(context)
+            self.build_video(context)
 
-        return {"RUNNING_MODAL"}
+        return {"FINISHED"}
 
-    def modal(self, context, event):
-        wm = context.window_manager
+    # def modal(self, context, event):
+    #     wm = context.window_manager
 
-        if event.type == "TIMER":
-            frame_current = context.scene.frame_current
-            if frame_current <= context.scene.frame_end:
-                # Render single frame
-                context.scene.render.filepath = self.temp_png.format(frame_current)
-                self.metadata[frame_current] = get_metadata(context, self.datetime)
-                bpy.ops.render.opengl(write_still=True)
-                wm.progress_update(frame_current)
+    #     if event.type == "TIMER":
+    #         frame_current = context.scene.frame_current
+    #         if frame_current <= context.scene.frame_end:
+    #             # Render single frame
+    #             context.scene.render.filepath = self.temp_png.format(frame_current)
+    #             self.metadata[frame_current] = get_metadata(context, self.datetime)
+    #             bpy.ops.render.opengl(write_still=True)
+    #             wm.progress_update(frame_current)
 
-                # Move to next frame
-                context.scene.frame_set(frame_current + 1)
-            else:
-                # Finish the operation
-                self.build_subtitles(context)
-                self.build_audio(context)
-                self.build_video(context)
-                self._teardown(context)
-                return {"FINISHED"}
+    #             # Move to next frame
+    #             context.scene.frame_set(frame_current + 1)
+    #         else:
+    #             # Finish the operation
+    #             self.build_subtitles(context)
+    #             self.build_audio(context)
+    #             self.build_video(context)
+    #             self._teardown(context)
+    #             return {"FINISHED"}
 
-        if event.type in {"ESC"}:
-            # Cancel the operation
-            self._teardown(context)
-            self.report({"INFO"}, "Playblast canceled")
-            return {"CANCELLED"}
+    #     if event.type in {"ESC"}:
+    #         # Cancel the operation
+    #         self._teardown(context)
+    #         self.report({"INFO"}, "Playblast canceled")
+    #         return {"CANCELLED"}
 
-        return {"PASS_THROUGH"}
-
-    def _teardown(self, context: bpy.types.Context):
-        """Clear and recover everything after playblast is done."""
-
-        # Stop the modal timer
-        wm = context.window_manager
-        wm.event_timer_remove(self._timer)
-        wm.progress_end()
-
-        # Recover settings
-        self._recover_settings(context)
-
-        # Remove temporary directory
-        shutil.rmtree(self.temp_dir, ignore_errors=True)
-
-    def _record_settings(self, context: bpy.types.Context):
-        """Record all settings that will be changed during the playblast."""
-
-        scene = context.scene
-        render = scene.render
-
-        self._resolution_percentage = render.resolution_percentage
-
-        self._frame_current = scene.frame_current
-        self._frame_start = scene.frame_start
-        self._frame_end = scene.frame_end
-
-        self._filepath = render.filepath
-        self._use_file_extension = render.use_file_extension
-        self._use_render_cache = render.use_render_cache
-
-        self._file_format = render.image_settings.file_format
-        self._color_mode = render.image_settings.color_mode
-        self._color_depth = render.image_settings.color_depth
-        self._compression = render.image_settings.compression
-
-    def _setup_settings(self, context: bpy.types.Context):
-        """Set up all settings needed for the playblast."""
-
-        scene = context.scene
-        render = scene.render
-        props = scene.playblast
-        metadata = get_metadata(context)
-
-        render.resolution_percentage = props.video.scale
-
-        scene.frame_set(metadata["frame_start"])
-        scene.frame_start = metadata["frame_start"]
-        scene.frame_end = metadata["frame_end"]
-
-        render.use_file_extension = False
-        render.use_render_cache = False
-
-        render.image_settings.file_format = "PNG"
-        render.image_settings.color_mode = "RGB"
-        render.image_settings.color_depth = "8"
-        render.image_settings.compression = 15
-
-        # Ensure the VIEW_3D area is in camera view
-        region_3d = context.region_data
-        region_3d.view_perspective = "CAMERA"
-
-    def _recover_settings(self, context: bpy.types.Context):
-        """Recover all settings that were changed during the playblast."""
-
-        scene = context.scene
-        render = scene.render
-
-        render.resolution_percentage = self._resolution_percentage
-
-        scene.frame_set(self._frame_current)
-        scene.frame_start = self._frame_start
-        scene.frame_end = self._frame_end
-
-        render.filepath = self._filepath
-        render.use_file_extension = self._use_file_extension
-        render.use_render_cache = self._use_render_cache
-
-        render.image_settings.file_format = self._file_format
-        render.image_settings.color_mode = self._color_mode
-        render.image_settings.color_depth = self._color_depth
-        render.image_settings.compression = self._compression
+    #     return {"PASS_THROUGH"}
 
     def build_subtitles(self, context: bpy.types.Context):
         """Build subtitles of metadata for the video."""
@@ -232,7 +150,7 @@ class PlayblastOperator(bpy.types.Operator):
         with open(TEMPLATE_ASS_PATH, "r", encoding="utf-8") as f:
             template_ass = f.read()
 
-        metadata = self.metadata[scene.frame_start]
+        metadata = self.metadata[str(scene.frame_start)]
         res_x = metadata["width"]
         res_y = metadata["height"]
         fps = metadata["frame_rate"]
@@ -262,7 +180,7 @@ class PlayblastOperator(bpy.types.Operator):
         dialogues = []
         template_dialogue = "Dialogue: 0,{start},{end},default,,0,0,0,,{{\\an{align}\\pos({x},{y})}}{text}"
         for frame in range(scene.frame_start, scene.frame_end + 1):
-            metadata = self.metadata[frame]
+            metadata = self.metadata[str(frame)]
             start = frame_to_timecode(frame - scene.frame_start, fps)
             end = frame_to_timecode(frame - scene.frame_start + 1, fps)
 
@@ -382,11 +300,11 @@ class PlayblastOperator(bpy.types.Operator):
         else:
             self.report(
                 {"INFO"},
-                bpy.app.translations.pgettext_rpt(
+                rpt_(
                     msgid='Playblast completed, saved to "{}", opening video...'
                 ).format(output_path),
             )
-            os.startfile(output_path)
+            play_video(output_path)
 
 
 class SaveAsDefaultOperator(bpy.types.Operator):
@@ -479,3 +397,94 @@ class ExportSettingsOperator(bpy.types.Operator, ExportHelper):
             json.dump(data, f, indent=4, ensure_ascii=False)
 
         return {"FINISHED"}
+
+
+# @contextmanager
+# def temporary_directory():
+#     """Context manager for creating and cleaning up a temporary directory."""
+
+#     temp_dir = tempfile.mkdtemp(prefix="blender_playblast_").replace("\\", "/")
+#     try:
+#         yield temp_dir
+#     finally:
+#         shutil.rmtree(temp_dir, ignore_errors=True)
+
+
+@contextmanager
+def render_properties_override(context: bpy.types.Context):
+    """Context manager for overriding render properties during playblast"""
+
+    scene = context.scene
+    render = scene.render
+    props = context.scene.playblast
+
+    # Store original render properties
+    frame_current = scene.frame_current
+    frame_start = scene.frame_start
+    frame_end = scene.frame_end
+
+    resolution_x = render.resolution_x
+    resolution_y = render.resolution_y
+    resolution_percentage = render.resolution_percentage
+
+    filepath = render.filepath
+    use_file_extension = render.use_file_extension
+    use_render_cache = render.use_render_cache
+    file_format = render.image_settings.file_format
+    color_mode = render.image_settings.color_mode
+    color_depth = render.image_settings.color_depth
+    compression = render.image_settings.compression
+
+    # Setup render properties for playblast
+    metadata = get_metadata(context)
+
+    scene.frame_start = metadata["frame_start"]
+    scene.frame_end = metadata["frame_end"]
+    render.resolution_percentage = props.video.scale
+    render.use_file_extension = True
+    render.use_render_cache = False
+    render.image_settings.file_format = "PNG"
+    render.image_settings.color_mode = "RGB"
+    render.image_settings.color_depth = "8"
+    render.image_settings.compression = 15
+
+    # Ensure the VIEW_3D area is in camera view
+    region_3d = context.region_data
+    region_3d.view_perspective = "CAMERA"
+
+    try:
+        yield
+    finally:
+        scene.frame_set(frame_current)
+        scene.frame_start = frame_start
+        scene.frame_end = frame_end
+
+        render.resolution_x = resolution_x
+        render.resolution_y = resolution_y
+        render.resolution_percentage = resolution_percentage
+
+        render.filepath = filepath
+        render.use_file_extension = use_file_extension
+        render.use_render_cache = use_render_cache
+        render.image_settings.file_format = file_format
+        render.image_settings.color_mode = color_mode
+        render.image_settings.color_depth = color_depth
+        render.image_settings.compression = compression
+
+
+@contextmanager
+def register_collect_metadata_handler(context: bpy.types.Context):
+    """Register a handler to collect metadata after each frame is rendered."""
+
+    def handler(scene: bpy.types.Scene, dependency):
+        metadata = get_metadata(bpy.context)
+        scene.playblast["metadata"][str(scene.frame_current)] = metadata
+
+    context.scene.playblast["metadata"] = {}
+    bpy.app.handlers.frame_change_post.append(handler)
+
+    try:
+        yield
+    finally:
+        bpy.app.handlers.frame_change_post.remove(handler)
+        del context.scene.playblast["metadata"]
