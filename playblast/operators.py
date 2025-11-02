@@ -15,6 +15,100 @@ from .metadata import MetaData, get_metadata
 from .paths import BFONT_PATH, DEFAULT_SETTINGS_FILE, TEMPLATE_ASS_PATH
 from .utils import detect_ffmpeg, get_full_font_name, play_video
 
+# @contextmanager
+# def temporary_directory():
+#     """Context manager for creating and cleaning up a temporary directory."""
+
+#     temp_dir = tempfile.mkdtemp(prefix="blender_playblast_").replace("\\", "/")
+#     try:
+#         yield temp_dir
+#     finally:
+#         shutil.rmtree(temp_dir, ignore_errors=True)
+
+
+@contextmanager
+def render_properties_override(context: bpy.types.Context):
+    """Context manager for overriding render properties during playblast"""
+
+    scene = context.scene
+    render = scene.render
+
+    # Store original render properties
+    frame_current = scene.frame_current
+    frame_start = scene.frame_start
+    frame_end = scene.frame_end
+
+    resolution_x = render.resolution_x
+    resolution_y = render.resolution_y
+    resolution_percentage = render.resolution_percentage
+
+    filepath = render.filepath
+    use_file_extension = render.use_file_extension
+    use_render_cache = render.use_render_cache
+    file_format = render.image_settings.file_format
+    color_mode = render.image_settings.color_mode
+    color_depth = render.image_settings.color_depth
+    compression = render.image_settings.compression
+
+    # Setup render properties for playblast
+    metadata = get_metadata(context)
+
+    scene.frame_start = metadata["frame_start"]
+    scene.frame_end = metadata["frame_end"]
+
+    render.resolution_x = metadata["width"]
+    render.resolution_y = metadata["height"]
+    render.resolution_percentage = 100
+
+    render.use_file_extension = True
+    render.use_render_cache = False
+    render.image_settings.file_format = "PNG"
+    render.image_settings.color_mode = "RGB"
+    render.image_settings.color_depth = "8"
+    render.image_settings.compression = 15
+
+    # Ensure the VIEW_3D area is in camera view
+    region_3d = context.region_data
+    region_3d.view_perspective = "CAMERA"
+
+    try:
+        yield
+    finally:
+        # Restore original render properties
+        scene.frame_set(frame_current)
+        scene.frame_start = frame_start
+        scene.frame_end = frame_end
+
+        render.resolution_x = resolution_x
+        render.resolution_y = resolution_y
+        render.resolution_percentage = resolution_percentage
+
+        render.filepath = filepath
+        render.use_file_extension = use_file_extension
+        render.use_render_cache = use_render_cache
+        render.image_settings.file_format = file_format
+        render.image_settings.color_mode = color_mode
+        render.image_settings.color_depth = color_depth
+        render.image_settings.compression = compression
+
+
+@contextmanager
+def register_collect_metadata_handler(context: bpy.types.Context):
+    """Register a handler to collect metadata after each frame is rendered."""
+
+    def handler(scene: bpy.types.Scene):
+        metadata = get_metadata(bpy.context, is_rendering=True)
+        scene.playblast["metadata"][str(scene.frame_current)] = metadata
+
+    context.scene.playblast["metadata"] = {}
+    bpy.app.handlers.frame_change_post.append(handler)
+
+    try:
+        yield
+    finally:
+        bpy.app.handlers.frame_change_post.remove(handler)
+        del context.scene.playblast["metadata"]
+
 
 class PlayblastOperator(bpy.types.Operator):
     bl_idname = "playblast.run"
@@ -75,36 +169,6 @@ class PlayblastOperator(bpy.types.Operator):
             self.build_video(context)
 
         return {"FINISHED"}
-
-    # def modal(self, context, event):
-    #     wm = context.window_manager
-
-    #     if event.type == "TIMER":
-    #         frame_current = context.scene.frame_current
-    #         if frame_current <= context.scene.frame_end:
-    #             # Render single frame
-    #             context.scene.render.filepath = self.temp_png.format(frame_current)
-    #             self.metadata[frame_current] = get_metadata(context, self.datetime)
-    #             bpy.ops.render.opengl(write_still=True)
-    #             wm.progress_update(frame_current)
-
-    #             # Move to next frame
-    #             context.scene.frame_set(frame_current + 1)
-    #         else:
-    #             # Finish the operation
-    #             self.build_subtitles(context)
-    #             self.build_audio(context)
-    #             self.build_video(context)
-    #             self._teardown(context)
-    #             return {"FINISHED"}
-
-    #     if event.type in {"ESC"}:
-    #         # Cancel the operation
-    #         self._teardown(context)
-    #         self.report({"INFO"}, "Playblast canceled")
-    #         return {"CANCELLED"}
-
-    #     return {"PASS_THROUGH"}
 
     def build_subtitles(self, context: bpy.types.Context):
         """Build subtitles of metadata for the video."""
@@ -397,94 +461,3 @@ class ExportSettingsOperator(bpy.types.Operator, ExportHelper):
             json.dump(data, f, indent=4, ensure_ascii=False)
 
         return {"FINISHED"}
-
-
-# @contextmanager
-# def temporary_directory():
-#     """Context manager for creating and cleaning up a temporary directory."""
-
-#     temp_dir = tempfile.mkdtemp(prefix="blender_playblast_").replace("\\", "/")
-#     try:
-#         yield temp_dir
-#     finally:
-#         shutil.rmtree(temp_dir, ignore_errors=True)
-
-
-@contextmanager
-def render_properties_override(context: bpy.types.Context):
-    """Context manager for overriding render properties during playblast"""
-
-    scene = context.scene
-    render = scene.render
-    props = context.scene.playblast
-
-    # Store original render properties
-    frame_current = scene.frame_current
-    frame_start = scene.frame_start
-    frame_end = scene.frame_end
-
-    resolution_x = render.resolution_x
-    resolution_y = render.resolution_y
-    resolution_percentage = render.resolution_percentage
-
-    filepath = render.filepath
-    use_file_extension = render.use_file_extension
-    use_render_cache = render.use_render_cache
-    file_format = render.image_settings.file_format
-    color_mode = render.image_settings.color_mode
-    color_depth = render.image_settings.color_depth
-    compression = render.image_settings.compression
-
-    # Setup render properties for playblast
-    metadata = get_metadata(context)
-
-    scene.frame_start = metadata["frame_start"]
-    scene.frame_end = metadata["frame_end"]
-    render.resolution_percentage = props.video.scale
-    render.use_file_extension = True
-    render.use_render_cache = False
-    render.image_settings.file_format = "PNG"
-    render.image_settings.color_mode = "RGB"
-    render.image_settings.color_depth = "8"
-    render.image_settings.compression = 15
-
-    # Ensure the VIEW_3D area is in camera view
-    region_3d = context.region_data
-    region_3d.view_perspective = "CAMERA"
-
-    try:
-        yield
-    finally:
-        scene.frame_set(frame_current)
-        scene.frame_start = frame_start
-        scene.frame_end = frame_end
-
-        render.resolution_x = resolution_x
-        render.resolution_y = resolution_y
-        render.resolution_percentage = resolution_percentage
-
-        render.filepath = filepath
-        render.use_file_extension = use_file_extension
-        render.use_render_cache = use_render_cache
-        render.image_settings.file_format = file_format
-        render.image_settings.color_mode = color_mode
-        render.image_settings.color_depth = color_depth
-        render.image_settings.compression = compression
-
-
-@contextmanager
-def register_collect_metadata_handler(context: bpy.types.Context):
-    """Register a handler to collect metadata after each frame is rendered."""
-
-    def handler(scene: bpy.types.Scene, dependency):
-        metadata = get_metadata(bpy.context)
-        scene.playblast["metadata"][str(scene.frame_current)] = metadata
-
-    context.scene.playblast["metadata"] = {}
-    bpy.app.handlers.frame_change_post.append(handler)
-
-    try:
-        yield
-    finally:
-        bpy.app.handlers.frame_change_post.remove(handler)
-        del context.scene.playblast["metadata"]

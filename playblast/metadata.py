@@ -41,7 +41,7 @@ META_DATA_DESCRIPTIONS = {
 }
 
 
-def get_metadata(context: bpy.types.Context, datetime_: datetime = None) -> MetaData:
+def get_metadata(context: bpy.types.Context, is_rendering: bool = False) -> MetaData:
     """Get the metadata for current frame in the given context."""
 
     scene = context.scene
@@ -49,13 +49,19 @@ def get_metadata(context: bpy.types.Context, datetime_: datetime = None) -> Meta
     props = scene.playblast
 
     # Get Resolution Info
-    scale = props.video.scale
-    res_x = int(render.resolution_x * scale / 100)
-    res_y = int(render.resolution_y * scale / 100)
+    if is_rendering:
+        # When rendering, the resolution already takes the scale into account
+        res_x = render.resolution_x
+        res_y = render.resolution_y
+    else:
+        # When not rendering, calculate the resolution with scale and make sure it's even
+        scale = props.video.scale
 
-    # Make sure resolution is even
-    res_x += res_x % 2
-    res_y += res_y % 2
+        res_x = int(render.resolution_x * scale / 100)
+        res_y = int(render.resolution_y * scale / 100)
+
+        res_x += res_x % 2
+        res_y += res_y % 2
 
     # Get frame range info
     if props.video.use_frame_range:
@@ -74,10 +80,8 @@ def get_metadata(context: bpy.types.Context, datetime_: datetime = None) -> Meta
         camera_focal = ""
         camera_name = ""
 
-    datetime_ = datetime_ or datetime.now()
-
     metadata: MetaData = {
-        "datetime": datetime_.strftime("%Y-%m-%d %H:%M:%S"),
+        "datetime": datetime.now().isoformat(sep=" ", timespec="seconds"),
         "width": res_x,
         "height": res_y,
         "file_name": props.file.name,
