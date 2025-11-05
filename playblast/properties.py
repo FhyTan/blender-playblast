@@ -249,7 +249,7 @@ class BurnInProperties(bpy.types.PropertyGroup):
     bottom_right: bpy.props.StringProperty(
         name="Bottom Right",
         description="Text to display in the bottom right corner",
-        default=r"Frame: {frame_current} | {frame_start}-{frame_end}",
+        default=r"Frame: {frame_current} | {frame_start}-{frame_end} | {frame_rate} fps",
     )
 
 

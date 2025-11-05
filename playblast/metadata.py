@@ -67,6 +67,9 @@ def get_metadata(context: bpy.types.Context, is_rendering: bool = False) -> Meta
     if props.override.use_frame_range:
         frame_start = props.override.frame_start
         frame_end = props.override.frame_end
+    elif scene.use_preview_range:
+        frame_start = scene.frame_preview_start
+        frame_end = scene.frame_preview_end
     else:
         frame_start = scene.frame_start
         frame_end = scene.frame_end
