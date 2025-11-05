@@ -3,12 +3,6 @@ from bl_ui.utils import PresetPanel
 
 from .metadata import META_DATA_DESCRIPTIONS
 
-# class PLAYBLAST_MT_presets(Menu):
-#     bl_label = "Playblast Presets"
-#     preset_subdir = "playblast"
-#     preset_operator = "script.execute_preset"
-#     draw = Menu.draw_preset
-
 
 class PLAYBLAST_PT_presets(PresetPanel, bpy.types.Panel):
     bl_label = "Playblast Presets"
@@ -20,12 +14,13 @@ class PLAYBLAST_PT_presets(PresetPanel, bpy.types.Panel):
     def post_cb(context, _filepath):
         # Modify an arbitrary built-in scene property to force a depsgraph
         # update, because add-on properties don't. (see #62325)
-        render = context.scene.render
-        render.filter_size = render.filter_size
+        # This is derived from addons_core/cycles/ui.py
+        scene = context.scene
+        scene.frame_step = scene.frame_step
 
 
-class PlayblastPanel(bpy.types.Panel):
-    bl_idname = "VIEW3D_PT_playblast"
+class PLAYBLAST_PT_main(bpy.types.Panel):
+    bl_idname = "PLAYBLAST_PT_main"
     bl_label = "Playblast"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
@@ -49,13 +44,13 @@ class PlayblastPanel(bpy.types.Panel):
         col.prop(video_props, "codec")
 
 
-class PlayblastOverridePanel(bpy.types.Panel):
-    bl_idname = "VIEW3D_PT_playblast_override"
+class PLAYBLAST_PT_override(bpy.types.Panel):
+    bl_idname = "PLAYBLAST_PT_override"
     bl_label = "Override"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "Tool"
-    bl_parent_id = "VIEW3D_PT_playblast"
+    bl_parent_id = "PLAYBLAST_PT_main"
     bl_order = 0
 
     def draw(self, context: bpy.types.Context):
@@ -86,13 +81,13 @@ class PlayblastOverridePanel(bpy.types.Panel):
         sub.prop(override_props, "viewport_shading", text="", expand=True)
 
 
-class PlayblastFilePanel(bpy.types.Panel):
-    bl_idname = "VIEW3D_PT_playblast_file"
+class PLAYBLAST_PT_file(bpy.types.Panel):
+    bl_idname = "PLAYBLAST_PT_file"
     bl_label = "File"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "Tool"
-    bl_parent_id = "VIEW3D_PT_playblast"
+    bl_parent_id = "PLAYBLAST_PT_main"
     bl_order = 1
 
     def draw(self, context: bpy.types.Context):
@@ -121,13 +116,13 @@ class PlayblastFilePanel(bpy.types.Panel):
         col.prop(file_props, "full_path")
 
 
-class PlayblastBurnInPanel(bpy.types.Panel):
-    bl_idname = "VIEW3D_PT_playblast_burn_in"
+class PLAYBLAST_PT_burn_in(bpy.types.Panel):
+    bl_idname = "PLAYBLAST_PT_burn_in"
     bl_label = "Burn-In Data"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "Tool"
-    bl_parent_id = "VIEW3D_PT_playblast"
+    bl_parent_id = "PLAYBLAST_PT_main"
     bl_order = 2
 
     def draw_header(self, context: bpy.types.Context):
@@ -165,8 +160,8 @@ class PlayblastBurnInPanel(bpy.types.Panel):
         col.prop(burn_in_props, "bottom_right")
 
 
-class PlayblastBurnInHelpPanel(bpy.types.Panel):
-    bl_idname = "VIEW3D_PT_playblast_burn_in_help"
+class PLAYBLAST_PT_burn_in_help(bpy.types.Panel):
+    bl_idname = "PLAYBLAST_PT_burn_in_help"
     bl_label = "Burn-In Data Help"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
@@ -188,13 +183,13 @@ class PlayblastBurnInHelpPanel(bpy.types.Panel):
             grid.label(text=description)
 
 
-class PlayblastSettingsPanel(bpy.types.Panel):
-    bl_idname = "VIEW3D_PT_playblast_settings"
+class PLAYBLAST_PT_settings(bpy.types.Panel):
+    bl_idname = "PLAYBLAST_PT_settings"
     bl_label = "Settings"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "Tool"
-    bl_parent_id = "VIEW3D_PT_playblast"
+    bl_parent_id = "PLAYBLAST_PT_main"
     bl_order = 3
 
     def draw(self, context: bpy.types.Context):
@@ -210,3 +205,24 @@ class PlayblastSettingsPanel(bpy.types.Panel):
         row = layout.row()
         row.operator("playblast.import_settings", text="Import", icon="IMPORT")
         row.operator("playblast.export_settings", text="Export", icon="EXPORT")
+
+
+classes = (
+    PLAYBLAST_PT_presets,
+    PLAYBLAST_PT_main,
+    PLAYBLAST_PT_override,
+    PLAYBLAST_PT_file,
+    PLAYBLAST_PT_burn_in,
+    PLAYBLAST_PT_burn_in_help,
+    PLAYBLAST_PT_settings,
+)
+
+
+def register():
+    for cls in classes:
+        bpy.utils.register_class(cls)
+
+
+def unregister():
+    for cls in reversed(classes):
+        bpy.utils.unregister_class(cls)

@@ -268,3 +268,26 @@ class PlayblastProperties(bpy.types.PropertyGroup):
         default=True,
         options={"HIDDEN"},
     )
+
+
+classes = (
+    VideoProperties,
+    OverrideProperties,
+    FileProperties,
+    BurnInProperties,
+    PlayblastProperties,
+)
+
+
+def register():
+    for cls in classes:
+        bpy.utils.register_class(cls)
+
+    bpy.types.Scene.playblast = bpy.props.PointerProperty(type=PlayblastProperties)
+
+
+def unregister():
+    del bpy.types.Scene.playblast
+
+    for cls in reversed(classes):
+        bpy.utils.unregister_class(cls)

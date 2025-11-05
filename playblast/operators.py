@@ -13,7 +13,7 @@ from bpy.app.translations import pgettext_rpt as rpt_
 from bpy_extras.io_utils import ExportHelper, ImportHelper
 
 from .metadata import get_metadata
-from .paths import BFONT_PATH, DEFAULT_SETTINGS_FILE, TEMPLATE_ASS_PATH
+from .paths import BFONT_PATH, TEMPLATE_ASS_PATH
 from .utils import detect_ffmpeg, get_full_font_name, play_video
 
 
@@ -486,7 +486,7 @@ class PLAYBLAST_OT_preset_add(AddPresetBase, bpy.types.Operator):
 
     bl_idname = "playblast.preset_add"
     bl_label = "Add Playblast Preset"
-    preset_menu = "PLAYBLAST_PT_Playblast_presets"
+    preset_menu = "PLAYBLAST_PT_presets"
     preset_subdir = "playblast"
 
     preset_defines = [
@@ -517,3 +517,21 @@ class PLAYBLAST_OT_preset_add(AddPresetBase, bpy.types.Operator):
         "playblast.burn_in.bottom_center",
         "playblast.burn_in.bottom_right",
     ]
+
+
+classes = (
+    PLAYBLAST_OT_run,
+    PLAYBLAST_OT_import_settings,
+    PLAYBLAST_OT_export_settings,
+    PLAYBLAST_OT_preset_add,
+)
+
+
+def register():
+    for cls in classes:
+        bpy.utils.register_class(cls)
+
+
+def unregister():
+    for cls in reversed(classes):
+        bpy.utils.unregister_class(cls)

@@ -25,32 +25,9 @@ def register():
     # Register Translations
     # bpy.app.translations.register(__name__, translations_dict)
 
-    # Register Operators
-    bpy.utils.register_class(operators.PLAYBLAST_OT_run)
-    bpy.utils.register_class(operators.PLAYBLAST_OT_import_settings)
-    bpy.utils.register_class(operators.PLAYBLAST_OT_export_settings)
-
-    # Register Property Groups
-    bpy.utils.register_class(properties.VideoProperties)
-    bpy.utils.register_class(properties.OverrideProperties)
-    bpy.utils.register_class(properties.FileProperties)
-    bpy.utils.register_class(properties.BurnInProperties)
-    bpy.utils.register_class(properties.PlayblastProperties)
-    bpy.types.Scene.playblast = bpy.props.PointerProperty(
-        type=properties.PlayblastProperties
-    )
-
-    # bpy.utils.register_class(panels.PLAYBLAST_MT_presets)
-    bpy.utils.register_class(panels.PLAYBLAST_PT_presets)
-    bpy.utils.register_class(operators.PLAYBLAST_OT_preset_add)
-
-    # Register Panels
-    bpy.utils.register_class(panels.PlayblastPanel)
-    bpy.utils.register_class(panels.PlayblastOverridePanel)
-    bpy.utils.register_class(panels.PlayblastFilePanel)
-    bpy.utils.register_class(panels.PlayblastBurnInPanel)
-    bpy.utils.register_class(panels.PlayblastBurnInHelpPanel)
-    bpy.utils.register_class(panels.PlayblastSettingsPanel)
+    properties.register()
+    operators.register()
+    panels.register()
 
     # Register Handlers
     bpy.app.handlers.load_post.append(handlers.load_default_settings_for_new_file)
@@ -69,30 +46,9 @@ def unregister():
         bpy.types.SpaceView3D.draw_handler_remove(draw_handler, "WINDOW")
     bpy.app.handlers.load_post.remove(handlers.load_default_settings_for_new_file)
 
-    # bpy.utils.unregister_class(panels.PLAYBLAST_MT_presets)
-    bpy.utils.unregister_class(panels.PLAYBLAST_PT_presets)
-    bpy.utils.unregister_class(operators.PLAYBLAST_OT_preset_add)
-
-    # Unregister Panels
-    bpy.utils.unregister_class(panels.PlayblastSettingsPanel)
-    bpy.utils.unregister_class(panels.PlayblastBurnInHelpPanel)
-    bpy.utils.unregister_class(panels.PlayblastBurnInPanel)
-    bpy.utils.unregister_class(panels.PlayblastFilePanel)
-    bpy.utils.unregister_class(panels.PlayblastOverridePanel)
-    bpy.utils.unregister_class(panels.PlayblastPanel)
-
-    # Unregister Property Groups
-    del bpy.types.Scene.playblast
-    bpy.utils.unregister_class(properties.PlayblastProperties)
-    bpy.utils.unregister_class(properties.BurnInProperties)
-    bpy.utils.unregister_class(properties.FileProperties)
-    bpy.utils.unregister_class(properties.OverrideProperties)
-    bpy.utils.unregister_class(properties.VideoProperties)
-
-    # Unregister Operators
-    bpy.utils.unregister_class(operators.PLAYBLAST_OT_import_settings)
-    bpy.utils.unregister_class(operators.PLAYBLAST_OT_export_settings)
-    bpy.utils.unregister_class(operators.PLAYBLAST_OT_run)
+    panels.unregister()
+    operators.unregister()
+    properties.unregister()
 
     # Unregister Translations
     # bpy.app.translations.unregister(__name__)
