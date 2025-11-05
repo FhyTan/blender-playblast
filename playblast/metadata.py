@@ -50,12 +50,12 @@ def get_metadata(context: bpy.types.Context, is_rendering: bool = False) -> Meta
 
     # Get Resolution Info
     if is_rendering:
-        # When rendering, the resolution already takes the scale into account
+        # When rendering, the resolution already changed to the render size
         res_x = render.resolution_x
         res_y = render.resolution_y
     else:
         # When not rendering, calculate the resolution with scale and make sure it's even
-        scale = props.video.scale
+        scale = props.override.scale
 
         res_x = int(render.resolution_x * scale / 100)
         res_y = int(render.resolution_y * scale / 100)
@@ -64,9 +64,9 @@ def get_metadata(context: bpy.types.Context, is_rendering: bool = False) -> Meta
         res_y += res_y % 2
 
     # Get frame range info
-    if props.video.use_frame_range:
-        frame_start = props.video.frame_start
-        frame_end = props.video.frame_end
+    if props.override.use_frame_range:
+        frame_start = props.override.frame_start
+        frame_end = props.override.frame_end
     else:
         frame_start = scene.frame_start
         frame_end = scene.frame_end

@@ -22,15 +22,44 @@ class PlayblastPanel(bpy.types.Panel):
 
         col = layout.column()
         col.prop(video_props, "include_audio")
-        col.prop(video_props, "codec", text="Video Codec")
-        col.prop(video_props, "scale", text="Resolution Scale")
+        col.prop(video_props, "codec")
 
-        row = col.row(align=True, heading="Override Range")
-        row.prop(video_props, "use_frame_range", text="")
+
+class PlayblastOverridePanel(bpy.types.Panel):
+    bl_idname = "VIEW3D_PT_playblast_override"
+    bl_label = "Override"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = "Tool"
+    bl_parent_id = "VIEW3D_PT_playblast"
+    bl_order = 0
+
+    def draw(self, context: bpy.types.Context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        override_props = context.scene.playblast.override
+
+        col = layout.column()
+
+        col.prop(override_props, "scale")
+
+        row = col.row(align=True, heading="Frame Range")
+        row.prop(override_props, "use_frame_range", text="")
         sub = row.column()
-        sub.active = video_props.use_frame_range
-        sub.prop(video_props, "frame_start", text="Start")
-        sub.prop(video_props, "frame_end", text="End")
+        sub.active = override_props.use_frame_range
+        sub.prop(override_props, "frame_start", text="Start")
+        sub.prop(override_props, "frame_end", text="End")
+
+        col.prop(override_props, "show_overlays", icon="OVERLAY")
+
+        col = layout.column()
+        row = col.row(align=True, heading="Viewport Shading")
+        row.prop(override_props, "use_viewport_shading", text="")
+        sub = row.row()
+        sub.active = override_props.use_viewport_shading
+        sub.prop(override_props, "viewport_shading", text="", expand=True)
 
 
 class PlayblastFilePanel(bpy.types.Panel):
@@ -40,7 +69,7 @@ class PlayblastFilePanel(bpy.types.Panel):
     bl_region_type = "UI"
     bl_category = "Tool"
     bl_parent_id = "VIEW3D_PT_playblast"
-    bl_order = 0
+    bl_order = 1
 
     def draw(self, context: bpy.types.Context):
         layout = self.layout
@@ -75,7 +104,7 @@ class PlayblastBurnInPanel(bpy.types.Panel):
     bl_region_type = "UI"
     bl_category = "Tool"
     bl_parent_id = "VIEW3D_PT_playblast"
-    bl_order = 1
+    bl_order = 2
 
     def draw_header(self, context: bpy.types.Context):
         layout = self.layout
@@ -142,7 +171,7 @@ class PlayblastSettingsPanel(bpy.types.Panel):
     bl_region_type = "UI"
     bl_category = "Tool"
     bl_parent_id = "VIEW3D_PT_playblast"
-    bl_order = 2
+    bl_order = 3
 
     def draw(self, context: bpy.types.Context):
         layout = self.layout

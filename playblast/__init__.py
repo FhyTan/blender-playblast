@@ -23,7 +23,7 @@ def register():
     global draw_handler
 
     # Register Translations
-    bpy.app.translations.register(__name__, translations_dict)
+    # bpy.app.translations.register(__name__, translations_dict)
 
     # Register Operators
     bpy.utils.register_class(operators.PlayblastOperator)
@@ -33,6 +33,7 @@ def register():
 
     # Register Property Groups
     bpy.utils.register_class(properties.VideoProperties)
+    bpy.utils.register_class(properties.OverrideProperties)
     bpy.utils.register_class(properties.FileProperties)
     bpy.utils.register_class(properties.BurnInProperties)
     bpy.utils.register_class(properties.PlayblastProperties)
@@ -42,9 +43,10 @@ def register():
 
     # Register Panels
     bpy.utils.register_class(panels.PlayblastPanel)
+    bpy.utils.register_class(panels.PlayblastOverridePanel)
+    bpy.utils.register_class(panels.PlayblastFilePanel)
     bpy.utils.register_class(panels.PlayblastBurnInPanel)
     bpy.utils.register_class(panels.PlayblastBurnInHelpPanel)
-    bpy.utils.register_class(panels.PlayblastFilePanel)
     bpy.utils.register_class(panels.PlayblastSettingsPanel)
 
     # Register Handlers
@@ -66,9 +68,10 @@ def unregister():
 
     # Unregister Panels
     bpy.utils.unregister_class(panels.PlayblastSettingsPanel)
-    bpy.utils.unregister_class(panels.PlayblastFilePanel)
     bpy.utils.unregister_class(panels.PlayblastBurnInHelpPanel)
     bpy.utils.unregister_class(panels.PlayblastBurnInPanel)
+    bpy.utils.unregister_class(panels.PlayblastFilePanel)
+    bpy.utils.unregister_class(panels.PlayblastOverridePanel)
     bpy.utils.unregister_class(panels.PlayblastPanel)
 
     # Unregister Property Groups
@@ -76,6 +79,7 @@ def unregister():
     bpy.utils.unregister_class(properties.PlayblastProperties)
     bpy.utils.unregister_class(properties.BurnInProperties)
     bpy.utils.unregister_class(properties.FileProperties)
+    bpy.utils.unregister_class(properties.OverrideProperties)
     bpy.utils.unregister_class(properties.VideoProperties)
 
     # Unregister Operators
@@ -85,6 +89,6 @@ def unregister():
     bpy.utils.unregister_class(operators.PlayblastOperator)
 
     # Unregister Translations
-    bpy.app.translations.unregister(__name__)
+    # bpy.app.translations.unregister(__name__)
 
     print(__name__, "unregistered")

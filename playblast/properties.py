@@ -11,19 +11,21 @@ class VideoProperties(bpy.types.PropertyGroup):
     )
 
     codec: bpy.props.EnumProperty(
-        name="Codec",
+        name="Video Codec",
         description="Video codec for playblast",
         items=[
             ("libx264", "H.264", "H.264 codec"),
-            ("libx265", "H.265", "HEVC codec"),
+            ("libx265", "H.265", "H.265/HEVC codec"),
             ("mpeg4", "MPEG-4", "MPEG-4 codec"),
             ("libsvtav1", "AV1", "AV1 codec"),
         ],
         default="libx264",
     )
 
+
+class OverrideProperties(bpy.types.PropertyGroup):
     scale: bpy.props.IntProperty(
-        name="Scale",
+        name="Resolution Scale",
         description="Scale factor for the playblast resolution",
         subtype="PERCENTAGE",
         default=50,
@@ -33,7 +35,10 @@ class VideoProperties(bpy.types.PropertyGroup):
 
     use_frame_range: bpy.props.BoolProperty(
         name="Use Frame Range",
-        description="Use specific frame range for the playblast instead of the entire scene frame range",
+        description=(
+            "Use specific frame range for the playblast instead of the entire scene frame range\n"
+            "If disabled, the playblast will use the scene's start and end frames"
+        ),
         default=False,
     )
 
@@ -49,6 +54,33 @@ class VideoProperties(bpy.types.PropertyGroup):
         description="End frame for the playblast",
         default=250,
         min=0,
+    )
+
+    show_overlays: bpy.props.BoolProperty(
+        name="Show Overlays",
+        description="Show overlays like gizmos and outlines in the playblast",
+        default=False,
+    )
+
+    use_viewport_shading: bpy.props.BoolProperty(
+        name="Use Viewport Shading",
+        description=(
+            "Use specific viewport shading mode for the playblast\n"
+            "If disabled, the playblast will use the scene's viewport shading mode"
+        ),
+        default=False,
+    )
+
+    viewport_shading: bpy.props.EnumProperty(
+        name="Viewport Shading",
+        description="Viewport shading mode for the playblast",
+        items=[
+            ("WIREFRAME", "", "Wireframe shading", "SHADING_WIRE", 1),
+            ("SOLID", "", "Solid shading", "SHADING_SOLID", 2),
+            ("MATERIAL", "", "Material shading", "SHADING_TEXTURE", 3),
+            ("RENDERED", "", "Rendered shading", "SHADING_RENDERED", 4),
+        ],
+        default="MATERIAL",
     )
 
 
@@ -117,8 +149,9 @@ class FileProperties(bpy.types.PropertyGroup):
         description="File extension for playblast",
         items=[
             (".mp4", ".mp4", "MP4 format"),
-            (".avi", ".avi", "AVI format"),
             (".mov", ".mov", "MOV format"),
+            (".avi", ".avi", "AVI format"),
+            (".mkv", ".mkv", "MKV format"),
         ],
         default=".mp4",
     )
@@ -222,6 +255,7 @@ class BurnInProperties(bpy.types.PropertyGroup):
 
 class PlayblastProperties(bpy.types.PropertyGroup):
     video: bpy.props.PointerProperty(type=VideoProperties)
+    override: bpy.props.PointerProperty(type=OverrideProperties)
     file: bpy.props.PointerProperty(type=FileProperties)
     burn_in: bpy.props.PointerProperty(type=BurnInProperties)
 

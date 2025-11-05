@@ -1,29 +1,19 @@
 import json
 import os
 import shutil
-import tempfile
+import subprocess
 from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
-from typing import Dict
+from tempfile import TemporaryDirectory
 
 import bpy
 from bpy.app.translations import pgettext_rpt as rpt_
 from bpy_extras.io_utils import ExportHelper, ImportHelper
 
-from .metadata import MetaData, get_metadata
+from .metadata import get_metadata
 from .paths import BFONT_PATH, DEFAULT_SETTINGS_FILE, TEMPLATE_ASS_PATH
 from .utils import detect_ffmpeg, get_full_font_name, play_video
-
-# @contextmanager
-# def temporary_directory():
-#     """Context manager for creating and cleaning up a temporary directory."""
-
-#     temp_dir = tempfile.mkdtemp(prefix="blender_playblast_").replace("\\", "/")
-#     try:
-#         yield temp_dir
-#     finally:
-#         shutil.rmtree(temp_dir, ignore_errors=True)
 
 
 @contextmanager
@@ -32,15 +22,20 @@ def render_properties_override(context: bpy.types.Context):
 
     scene = context.scene
     render = scene.render
+    space = context.space_data
+    region = context.region_data
+    props = scene.playblast
+    metadata = get_metadata(context)
 
     # Store original render properties
-    frame_current = scene.frame_current
-    frame_start = scene.frame_start
-    frame_end = scene.frame_end
-
     resolution_x = render.resolution_x
     resolution_y = render.resolution_y
     resolution_percentage = render.resolution_percentage
+
+    frame_current = scene.frame_current
+    use_preview_range = scene.use_preview_range
+    frame_preview_start = scene.frame_preview_start
+    frame_preview_end = scene.frame_preview_end
 
     filepath = render.filepath
     use_file_extension = render.use_file_extension
@@ -50,15 +45,19 @@ def render_properties_override(context: bpy.types.Context):
     color_depth = render.image_settings.color_depth
     compression = render.image_settings.compression
 
+    shading_type = space.shading.type
+    show_xray = space.shading.show_xray
+    show_overlays = space.overlay.show_overlays
+
     # Setup render properties for playblast
-    metadata = get_metadata(context)
-
-    scene.frame_start = metadata["frame_start"]
-    scene.frame_end = metadata["frame_end"]
-
     render.resolution_x = metadata["width"]
     render.resolution_y = metadata["height"]
     render.resolution_percentage = 100
+
+    if props.override.use_frame_range:
+        scene.use_preview_range = True
+        scene.frame_preview_start = props.override.frame_start
+        scene.frame_preview_end = props.override.frame_end
 
     render.use_file_extension = True
     render.use_render_cache = False
@@ -67,21 +66,26 @@ def render_properties_override(context: bpy.types.Context):
     render.image_settings.color_depth = "8"
     render.image_settings.compression = 15
 
-    # Ensure the VIEW_3D area is in camera view
-    region_3d = context.region_data
-    region_3d.view_perspective = "CAMERA"
+    if props.override.use_viewport_shading:
+        space.shading.type = props.override.viewport_shading
+    space.shading.show_xray = False
+    space.overlay.show_overlays = props.override.show_overlays
 
     try:
+        # Ensure the VIEW_3D area is in camera view
+        region.view_perspective = "CAMERA"
+
         yield
     finally:
         # Restore original render properties
-        scene.frame_set(frame_current)
-        scene.frame_start = frame_start
-        scene.frame_end = frame_end
-
         render.resolution_x = resolution_x
         render.resolution_y = resolution_y
         render.resolution_percentage = resolution_percentage
+
+        scene.frame_set(frame_current)
+        scene.use_preview_range = use_preview_range
+        scene.frame_preview_start = frame_preview_start
+        scene.frame_preview_end = frame_preview_end
 
         render.filepath = filepath
         render.use_file_extension = use_file_extension
@@ -91,10 +95,17 @@ def render_properties_override(context: bpy.types.Context):
         render.image_settings.color_depth = color_depth
         render.image_settings.compression = compression
 
+        space.shading.type = shading_type
+        space.shading.show_xray = show_xray
+        space.overlay.show_overlays = show_overlays
+
 
 @contextmanager
 def register_collect_metadata_handler(context: bpy.types.Context):
-    """Register a handler to collect metadata after each frame is rendered."""
+    """Register a handler to collect metadata durning playblast.
+
+    The collected metadata will temporarily stored in `scene.playblast["metadata"]`.
+    """
 
     def handler(scene: bpy.types.Scene):
         metadata = get_metadata(bpy.context, is_rendering=True)
@@ -131,44 +142,55 @@ class PlayblastOperator(bpy.types.Operator):
             )
             return {"CANCELLED"}
 
-        # Create temporary directory for storing render frames and subtitles
-        self.temp_dir = tempfile.mkdtemp(prefix="blender_playblast_").replace("\\", "/")
-        self.temp_png = self.temp_dir + "/" + "{:04d}.png"
-        self.temp_ass = self.temp_dir + "/" + "subtitles.ass"
-        self.temp_aud = self.temp_dir + "/" + "audio.mp3"
-
-        # Get user Specified font path and copy to temporary directory
-        # This method can avoid error log for ffmpeg
-        spec_font_path: Path = context.scene.playblast.burn_in.font_family
-        if not spec_font_path or not os.path.exists(spec_font_path):
-            spec_font_path = BFONT_PATH
-        else:
-            spec_font_path = Path(spec_font_path)
-
-        self.temp_font = Path(self.temp_dir, "font", spec_font_path.name)
-        self.temp_font.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(spec_font_path, self.temp_font)
-
-        # Record metadata for each frame
-        self.metadata: Dict[int, MetaData] = {}
-        self.datetime = datetime.now()
-
         with (
+            TemporaryDirectory(prefix="blender_playblast_") as temp_dir,
             render_properties_override(context),
             register_collect_metadata_handler(context),
         ):
-            context.scene.render.filepath = self.temp_dir + "/"
+            self.temp_dir = Path(temp_dir)
+            self.temp_png = self.temp_dir / "%04d.png"
+            self.temp_sub = self.temp_dir / "subtitle.ass"
+            self.temp_aud = self.temp_dir / "audio.aac"
+            self.temp_font = self.copy_font_to_temp(context)
+
+            # Use OpenGL render to render frames
+            context.scene.render.filepath = self.temp_dir.as_posix() + "/"
             bpy.ops.render.opengl(animation=True, view_context=True)
 
-            self.metadata = context.scene.playblast["metadata"]
-            for data in self.metadata.values():
-                data["datetime"] = self.datetime.isoformat(sep=" ", timespec="seconds")
+            # Keep datetime for each frame is the same
+            t = datetime.now().isoformat(sep=" ", timespec="seconds")
+            for data in context.scene.playblast["metadata"].values():
+                data["datetime"] = t
+
+            # Get real frame range
+            if context.scene.use_preview_range:
+                self.frame_start = context.scene.frame_preview_start
+                self.frame_end = context.scene.frame_preview_end
+            else:
+                self.frame_start = context.scene.frame_start
+                self.frame_end = context.scene.frame_end
 
             self.build_subtitles(context)
             self.build_audio(context)
             self.build_video(context)
 
         return {"FINISHED"}
+
+    def copy_font_to_temp(self, context: bpy.types.Context) -> Path:
+        """Copy the specified font to temporary directory for ffmpeg usage.
+
+        This can avoid many error logs for ffmpeg.
+        """
+        font_path: Path = context.scene.playblast.burn_in.font_family
+        if not font_path or not os.path.exists(font_path):
+            font_path = BFONT_PATH
+        else:
+            font_path = Path(font_path)
+
+        temp_font = Path(self.temp_dir, "font", font_path.name)
+        temp_font.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(font_path, temp_font)
+        return temp_font
 
     def build_subtitles(self, context: bpy.types.Context):
         """Build subtitles of metadata for the video."""
@@ -187,7 +209,7 @@ class PlayblastOperator(bpy.types.Operator):
             return f"{hours}:{minutes:02d}:{seconds:06.2f}"
 
         def get_hex_color(color):
-            # Copy color list
+            """Get the color hex code that used in ASS subtitles."""
             color = list(color)
 
             # # Convert scene linear to srgb
@@ -214,16 +236,15 @@ class PlayblastOperator(bpy.types.Operator):
         with open(TEMPLATE_ASS_PATH, "r", encoding="utf-8") as f:
             template_ass = f.read()
 
-        metadata = self.metadata[str(scene.frame_start)]
-        res_x = metadata["width"]
-        res_y = metadata["height"]
-        fps = metadata["frame_rate"]
+        res_x = scene.render.resolution_x
+        res_y = scene.render.resolution_y
+        fps = scene.render.fps
 
         # Get real name of font
         font_name = get_full_font_name(self.temp_font)
 
         # Keep text ratio regardless of resolution scale
-        font_size = props.burn_in.font_size * props.video.scale // 100
+        font_size = props.burn_in.font_size * props.override.scale // 100
 
         # Get correct color format
         font_color = get_hex_color(props.burn_in.color)
@@ -239,14 +260,14 @@ class PlayblastOperator(bpy.types.Operator):
         )
 
         # Also scale margin to keep aspect ratio
-        margin = props.burn_in.margin * props.video.scale // 100
+        margin = props.burn_in.margin * props.override.scale // 100
 
         dialogues = []
         template_dialogue = "Dialogue: 0,{start},{end},default,,0,0,0,,{{\\an{align}\\pos({x},{y})}}{text}"
-        for frame in range(scene.frame_start, scene.frame_end + 1):
-            metadata = self.metadata[str(frame)]
-            start = frame_to_timecode(frame - scene.frame_start, fps)
-            end = frame_to_timecode(frame - scene.frame_start + 1, fps)
+        for frame in range(self.frame_start, self.frame_end + 1):
+            metadata = scene.playblast["metadata"][str(frame)]
+            start = frame_to_timecode(frame - self.frame_start, fps)
+            end = frame_to_timecode(frame - self.frame_start + 1, fps)
 
             # Notice that the origin (0,0) is at the top-left corner for ass subtitles
             for pos in (
@@ -302,38 +323,45 @@ class PlayblastOperator(bpy.types.Operator):
         subtitles += "\n".join(dialogues)
 
         # Save subtitles to temporary folder
-        with open(self.temp_ass, "w", encoding="utf-8") as f:
+        with open(self.temp_sub, "w", encoding="utf-8") as f:
             f.write(subtitles)
 
     def build_audio(self, context: bpy.types.Context):
         """Build audio file use blender's built-in tools."""
 
-        props = context.scene.playblast.video
-        if not props.include_audio:
+        if not context.scene.playblast.video.include_audio:
             return
 
         # Render audio
         bpy.ops.sound.mixdown(
-            filepath=self.temp_aud,
-            container="MP3",
-            codec="MP3",
+            filepath=self.temp_aud.as_posix(),
+            container="AAC",
+            codec="AAC",
         )
 
     def build_video(self, context: bpy.types.Context):
         """Build video from the rendered frames using ffmpeg."""
 
         props = context.scene.playblast
-        file_props = props.file
-        video_props = props.video
-        include_audio = video_props.include_audio
+        include_audio = props.video.include_audio
+        output_path = props.file.full_path
+        codec = props.video.codec
 
-        output_path = file_props.full_path
-        png_pattern = self.temp_dir + "/%04d.png"
-
-        codec = video_props.codec
+        # Get crf for different codecs
+        match codec:
+            case "libx264":
+                crf = 23
+            case "libx265":
+                crf = 28
+            case "mpeg4":
+                crf = 5
+            case "libsvtav1":
+                crf = 35
+            case _:
+                crf = 23
 
         escape_font_path = self.temp_font.parent.as_posix().replace(":", "\\:")
-        escape_ass_path = self.temp_ass.replace(":", "\\:")
+        escape_sub_path = self.temp_sub.as_posix().replace(":", "\\:")
 
         # Ensure output path exists
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
@@ -342,26 +370,23 @@ class PlayblastOperator(bpy.types.Operator):
             "ffmpeg " +
             "-y " +
             f"-framerate {context.scene.render.fps} " +
-            f"-start_number {context.scene.frame_start} " +
-            f'-i "{png_pattern}" ' +
-            (f'-i "{self.temp_aud}" ' if include_audio else "") +
+            f"-start_number {self.frame_start} " +
+            f'-i "{self.temp_png.as_posix()}" ' +
+            (f'-i "{self.temp_aud.as_posix()}" ' if include_audio else "") +
             f"-c:v {codec} " +
             ("-c:a copy " if include_audio else "") +
             "-map 0:v:0 " +
             ("-map 1:a:0 " if include_audio else "") +
-            "-crf 23 " +
+            f"-crf {crf} " +
             "-pix_fmt yuv420p " +
-            f"-frames:v {context.scene.frame_end - context.scene.frame_start + 1} " +
-            f"-vf \"scale='iw+mod(iw,2)':'ih+mod(ih,2)',subtitles='{escape_ass_path}':fontsdir='{escape_font_path}'\" " +
+            f"-frames:v {self.frame_end - self.frame_start + 1} " +
+            f"-vf \"subtitles='{escape_sub_path}':fontsdir='{escape_font_path}'\" " +
             f'"{output_path}"'
         )  # fmt: skip
 
-        print("Executing command:", ffmpeg_cmd)
-        result = os.system(ffmpeg_cmd)
-
-        if result != 0:
-            self.report({"ERROR"}, "Failed to build video with ffmpeg.")
-        else:
+        try:
+            print("Executing command:", ffmpeg_cmd)
+            subprocess.run(ffmpeg_cmd, check=True)
             self.report(
                 {"INFO"},
                 rpt_(
@@ -369,6 +394,12 @@ class PlayblastOperator(bpy.types.Operator):
                 ).format(output_path),
             )
             play_video(output_path)
+        except subprocess.CalledProcessError as e:
+            self.report(
+                {"ERROR"},
+                f"FFmpeg processing failed, please open console for details.\n{e}",
+            )
+            return
 
 
 class SaveAsDefaultOperator(bpy.types.Operator):
