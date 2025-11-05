@@ -26,10 +26,9 @@ def register():
     # bpy.app.translations.register(__name__, translations_dict)
 
     # Register Operators
-    bpy.utils.register_class(operators.PlayblastOperator)
-    bpy.utils.register_class(operators.SaveAsDefaultOperator)
-    bpy.utils.register_class(operators.ImportSettingsOperator)
-    bpy.utils.register_class(operators.ExportSettingsOperator)
+    bpy.utils.register_class(operators.PLAYBLAST_OT_run)
+    bpy.utils.register_class(operators.PLAYBLAST_OT_import_settings)
+    bpy.utils.register_class(operators.PLAYBLAST_OT_export_settings)
 
     # Register Property Groups
     bpy.utils.register_class(properties.VideoProperties)
@@ -40,6 +39,10 @@ def register():
     bpy.types.Scene.playblast = bpy.props.PointerProperty(
         type=properties.PlayblastProperties
     )
+
+    # bpy.utils.register_class(panels.PLAYBLAST_MT_presets)
+    bpy.utils.register_class(panels.PLAYBLAST_PT_presets)
+    bpy.utils.register_class(operators.PLAYBLAST_OT_preset_add)
 
     # Register Panels
     bpy.utils.register_class(panels.PlayblastPanel)
@@ -66,6 +69,10 @@ def unregister():
         bpy.types.SpaceView3D.draw_handler_remove(draw_handler, "WINDOW")
     bpy.app.handlers.load_post.remove(handlers.load_default_settings_for_new_file)
 
+    # bpy.utils.unregister_class(panels.PLAYBLAST_MT_presets)
+    bpy.utils.unregister_class(panels.PLAYBLAST_PT_presets)
+    bpy.utils.unregister_class(operators.PLAYBLAST_OT_preset_add)
+
     # Unregister Panels
     bpy.utils.unregister_class(panels.PlayblastSettingsPanel)
     bpy.utils.unregister_class(panels.PlayblastBurnInHelpPanel)
@@ -83,10 +90,9 @@ def unregister():
     bpy.utils.unregister_class(properties.VideoProperties)
 
     # Unregister Operators
-    bpy.utils.unregister_class(operators.ExportSettingsOperator)
-    bpy.utils.unregister_class(operators.ImportSettingsOperator)
-    bpy.utils.unregister_class(operators.SaveAsDefaultOperator)
-    bpy.utils.unregister_class(operators.PlayblastOperator)
+    bpy.utils.unregister_class(operators.PLAYBLAST_OT_import_settings)
+    bpy.utils.unregister_class(operators.PLAYBLAST_OT_export_settings)
+    bpy.utils.unregister_class(operators.PLAYBLAST_OT_run)
 
     # Unregister Translations
     # bpy.app.translations.unregister(__name__)

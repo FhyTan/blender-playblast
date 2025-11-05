@@ -1,6 +1,27 @@
 import bpy
+from bl_ui.utils import PresetPanel
 
 from .metadata import META_DATA_DESCRIPTIONS
+
+# class PLAYBLAST_MT_presets(Menu):
+#     bl_label = "Playblast Presets"
+#     preset_subdir = "playblast"
+#     preset_operator = "script.execute_preset"
+#     draw = Menu.draw_preset
+
+
+class PLAYBLAST_PT_presets(PresetPanel, bpy.types.Panel):
+    bl_label = "Playblast Presets"
+    preset_subdir = "playblast"
+    preset_operator = "script.execute_preset"
+    preset_add_operator = "playblast.preset_add"
+
+    @staticmethod
+    def post_cb(context, _filepath):
+        # Modify an arbitrary built-in scene property to force a depsgraph
+        # update, because add-on properties don't. (see #62325)
+        render = context.scene.render
+        render.filter_size = render.filter_size
 
 
 class PlayblastPanel(bpy.types.Panel):
@@ -10,6 +31,9 @@ class PlayblastPanel(bpy.types.Panel):
     bl_region_type = "UI"
     bl_category = "Tool"
     bl_options = {"DEFAULT_CLOSED"}
+
+    def draw_header_preset(self, context):
+        PLAYBLAST_PT_presets.draw_panel_header(self.layout)
 
     def draw(self, context):
         layout = self.layout

@@ -8,6 +8,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 import bpy
+from bl_operators.presets import AddPresetBase
 from bpy.app.translations import pgettext_rpt as rpt_
 from bpy_extras.io_utils import ExportHelper, ImportHelper
 
@@ -121,7 +122,7 @@ def register_collect_metadata_handler(context: bpy.types.Context):
         del context.scene.playblast["metadata"]
 
 
-class PlayblastOperator(bpy.types.Operator):
+class PLAYBLAST_OT_run(bpy.types.Operator):
     bl_idname = "playblast.run"
     bl_label = "Run Playblast"
     bl_description = (
@@ -402,21 +403,7 @@ class PlayblastOperator(bpy.types.Operator):
             return
 
 
-class SaveAsDefaultOperator(bpy.types.Operator):
-    bl_idname = "playblast.save_as_default"
-    bl_label = "Save As Default"
-    bl_description = "Save the current playblast settings as default, then your new blender file will use these playblast settings as default."
-
-    def execute(self, context):
-        bpy.ops.playblast.export_settings(filepath=DEFAULT_SETTINGS_FILE.as_posix())
-        self.report(
-            {"INFO"},
-            "Default playblast settings saved. New blender files will use these settings.",
-        )
-        return {"FINISHED"}
-
-
-class ImportSettingsOperator(bpy.types.Operator, ImportHelper):
+class PLAYBLAST_OT_import_settings(bpy.types.Operator, ImportHelper):
     bl_idname = "playblast.import_settings"
     bl_label = "Import Settings"
     bl_description = "Import playblast settings from a file"
@@ -460,7 +447,7 @@ class ImportSettingsOperator(bpy.types.Operator, ImportHelper):
         return {"FINISHED"}
 
 
-class ExportSettingsOperator(bpy.types.Operator, ExportHelper):
+class PLAYBLAST_OT_export_settings(bpy.types.Operator, ExportHelper):
     bl_idname = "playblast.export_settings"
     bl_label = "Export Settings"
     bl_description = "Export current playblast settings to a file"
@@ -492,3 +479,41 @@ class ExportSettingsOperator(bpy.types.Operator, ExportHelper):
             json.dump(data, f, indent=4, ensure_ascii=False)
 
         return {"FINISHED"}
+
+
+class PLAYBLAST_OT_preset_add(AddPresetBase, bpy.types.Operator):
+    """Add a Playblast Preset"""
+
+    bl_idname = "playblast.preset_add"
+    bl_label = "Add Playblast Preset"
+    preset_menu = "PLAYBLAST_PT_Playblast_presets"
+    preset_subdir = "playblast"
+
+    preset_defines = [
+        "playblast = bpy.context.scene.playblast",
+    ]
+
+    preset_values = [
+        "playblast.video.include_audio",
+        "playblast.video.codec",
+        "playblast.override.scale",
+        "playblast.override.show_overlays",
+        "playblast.override.use_viewport_shading",
+        "playblast.override.viewport_shading",
+        "playblast.file.directory",
+        "playblast.file.name",
+        "playblast.file.use_version",
+        "playblast.file.extension",
+        "playblast.burn_in.enable",
+        "playblast.burn_in.preview",
+        "playblast.burn_in.font_family",
+        "playblast.burn_in.font_size",
+        "playblast.burn_in.margin",
+        "playblast.burn_in.color",
+        "playblast.burn_in.top_left",
+        "playblast.burn_in.top_center",
+        "playblast.burn_in.top_right",
+        "playblast.burn_in.bottom_left",
+        "playblast.burn_in.bottom_center",
+        "playblast.burn_in.bottom_right",
+    ]
