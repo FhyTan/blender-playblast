@@ -125,7 +125,7 @@ class FileProperties(bpy.types.PropertyGroup):
         "Defaults to the current blend file's directory (`//`). \n"
         "If the blend file is not saved, a temporary directory will be used instead.",
         subtype="DIR_PATH",
-        options={"PATH_SUPPORTS_BLEND_RELATIVE"},
+        options={"PATH_SUPPORTS_BLEND_RELATIVE"} if bpy.app.version >= (4,5) else set(),
         default="//",
     )
 

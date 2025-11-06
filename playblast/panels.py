@@ -36,7 +36,7 @@ class PLAYBLAST_PT_main(bpy.types.Panel):
         layout.use_property_decorate = False
 
         video_props = context.scene.playblast.video
-        layout.operator("playblast.run", text="Run", icon="RENDER_ANIMATION")
+        layout.operator("render.playblast", text="Run Playblast", icon="RENDER_ANIMATION")
         layout.separator()
 
         col = layout.column()
@@ -130,9 +130,7 @@ class PLAYBLAST_PT_burn_in(bpy.types.Panel):
 
         burn_in_props = context.scene.playblast.burn_in
         layout.prop(burn_in_props, "enable", text="")
-        layout.popover(
-            panel="PLAYBLAST_PT_burn_in_help", text="", icon="QUESTION"
-        )
+        layout.popover(panel="PLAYBLAST_PT_burn_in_help", text="", icon="QUESTION")
 
     def draw(self, context: bpy.types.Context):
         layout = self.layout

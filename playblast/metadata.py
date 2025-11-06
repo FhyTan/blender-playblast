@@ -46,7 +46,7 @@ def get_metadata(context: bpy.types.Context, is_rendering: bool = False) -> Meta
 
     scene = context.scene
     render = scene.render
-    props = scene.playblast
+    playblast = scene.playblast
 
     # Get Resolution Info
     if is_rendering:
@@ -55,7 +55,7 @@ def get_metadata(context: bpy.types.Context, is_rendering: bool = False) -> Meta
         res_y = render.resolution_y
     else:
         # When not rendering, calculate the resolution with scale and make sure it's even
-        scale = props.override.scale
+        scale = playblast.override.scale
 
         res_x = int(render.resolution_x * scale / 100)
         res_y = int(render.resolution_y * scale / 100)
@@ -64,9 +64,9 @@ def get_metadata(context: bpy.types.Context, is_rendering: bool = False) -> Meta
         res_y += res_y % 2
 
     # Get frame range info
-    if props.override.use_frame_range:
-        frame_start = props.override.frame_start
-        frame_end = props.override.frame_end
+    if playblast.override.use_frame_range:
+        frame_start = playblast.override.frame_start
+        frame_end = playblast.override.frame_end
     elif scene.use_preview_range:
         frame_start = scene.frame_preview_start
         frame_end = scene.frame_preview_end
@@ -87,10 +87,10 @@ def get_metadata(context: bpy.types.Context, is_rendering: bool = False) -> Meta
         "datetime": datetime.now().isoformat(sep=" ", timespec="seconds"),
         "width": res_x,
         "height": res_y,
-        "file_name": props.file.name,
-        "file_version": props.file.version_str,
-        "file_ext": props.file.extension,
-        "file_full_name": os.path.basename(props.file.full_path),
+        "file_name": playblast.file.name,
+        "file_version": playblast.file.version_str,
+        "file_ext": playblast.file.extension,
+        "file_full_name": os.path.basename(playblast.file.full_path),
         "frame_current": scene.frame_current,
         "frame_start": frame_start,
         "frame_end": frame_end,

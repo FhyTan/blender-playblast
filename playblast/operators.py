@@ -23,10 +23,18 @@ def render_properties_override(context: bpy.types.Context):
 
     scene = context.scene
     render = scene.render
-    space = context.space_data
-    region = context.region_data
-    props = scene.playblast
+    playblast = scene.playblast
     metadata = get_metadata(context)
+
+    for area in context.screen.areas:
+        if area.type == "VIEW_3D":
+            for space in area.spaces:
+                if space.type == "VIEW_3D":
+                    region = space.region_3d
+                    break
+            break
+    if area.type != "VIEW_3D" or space.type != "VIEW_3D":
+        raise RuntimeError("Active area is not a 3D Viewport")
 
     # Store original render properties
     resolution_x = render.resolution_x
@@ -45,6 +53,7 @@ def render_properties_override(context: bpy.types.Context):
     color_mode = render.image_settings.color_mode
     color_depth = render.image_settings.color_depth
     compression = render.image_settings.compression
+    multiview = render.use_multiview
 
     shading_type = space.shading.type
     show_xray = space.shading.show_xray
@@ -55,10 +64,10 @@ def render_properties_override(context: bpy.types.Context):
     render.resolution_y = metadata["height"]
     render.resolution_percentage = 100
 
-    if props.override.use_frame_range:
+    if playblast.override.use_frame_range:
         scene.use_preview_range = True
-        scene.frame_preview_start = props.override.frame_start
-        scene.frame_preview_end = props.override.frame_end
+        scene.frame_preview_start = playblast.override.frame_start
+        scene.frame_preview_end = playblast.override.frame_end
 
     render.use_file_extension = True
     render.use_render_cache = False
@@ -66,11 +75,12 @@ def render_properties_override(context: bpy.types.Context):
     render.image_settings.color_mode = "RGB"
     render.image_settings.color_depth = "8"
     render.image_settings.compression = 15
+    render.use_multiview = False
 
-    if props.override.use_viewport_shading:
-        space.shading.type = props.override.viewport_shading
+    if playblast.override.use_viewport_shading:
+        space.shading.type = playblast.override.viewport_shading
     space.shading.show_xray = False
-    space.overlay.show_overlays = props.override.show_overlays
+    space.overlay.show_overlays = playblast.override.show_overlays
 
     try:
         # Ensure the VIEW_3D area is in camera view
@@ -95,6 +105,7 @@ def render_properties_override(context: bpy.types.Context):
         render.image_settings.color_mode = color_mode
         render.image_settings.color_depth = color_depth
         render.image_settings.compression = compression
+        render.use_multiview = multiview
 
         space.shading.type = shading_type
         space.shading.show_xray = show_xray
@@ -123,7 +134,7 @@ def register_collect_metadata_handler(context: bpy.types.Context):
 
 
 class PLAYBLAST_OT_run(bpy.types.Operator):
-    bl_idname = "playblast.run"
+    bl_idname = "render.playblast"
     bl_label = "Run Playblast"
     bl_description = (
         "Create a playblast video of the current scene.\n"
@@ -151,7 +162,7 @@ class PLAYBLAST_OT_run(bpy.types.Operator):
             self.temp_dir = Path(temp_dir)
             self.temp_png = self.temp_dir / "%04d.png"
             self.temp_sub = self.temp_dir / "subtitle.ass"
-            self.temp_aud = self.temp_dir / "audio.aac"
+            self.temp_aud = self.temp_dir / "audio.mp3"
             self.temp_font = self.copy_font_to_temp(context)
 
             # Use OpenGL render to render frames
@@ -232,7 +243,10 @@ class PLAYBLAST_OT_run(bpy.types.Operator):
             return "".join(["&H", *color])
 
         scene = context.scene
-        props = scene.playblast
+        playblast = scene.playblast
+
+        if not playblast.burn_in.enable:
+            return
 
         with open(TEMPLATE_ASS_PATH, "r", encoding="utf-8") as f:
             template_ass = f.read()
@@ -245,10 +259,10 @@ class PLAYBLAST_OT_run(bpy.types.Operator):
         font_name = get_full_font_name(self.temp_font)
 
         # Keep text ratio regardless of resolution scale
-        font_size = props.burn_in.font_size * props.override.scale // 100
+        font_size = playblast.burn_in.font_size * playblast.override.scale // 100
 
         # Get correct color format
-        font_color = get_hex_color(props.burn_in.color)
+        font_color = get_hex_color(playblast.burn_in.color)
 
         subtitles = template_ass.format_map(
             {
@@ -261,7 +275,7 @@ class PLAYBLAST_OT_run(bpy.types.Operator):
         )
 
         # Also scale margin to keep aspect ratio
-        margin = props.burn_in.margin * props.override.scale // 100
+        margin = playblast.burn_in.margin * playblast.override.scale // 100
 
         # Notice that the origin (0,0) is at the top-left corner for ass subtitles
         # pos, align, x, y
@@ -312,7 +326,7 @@ class PLAYBLAST_OT_run(bpy.types.Operator):
             end = frame_to_timecode(frame - self.frame_start + 1, fps)
 
             for pos, align, x, y in vars:
-                text = getattr(props.burn_in, pos)
+                text = getattr(playblast.burn_in, pos)
                 try:
                     text = text.format_map(metadata)
                 except Exception:
@@ -344,17 +358,18 @@ class PLAYBLAST_OT_run(bpy.types.Operator):
         # Render audio
         bpy.ops.sound.mixdown(
             filepath=self.temp_aud.as_posix(),
-            container="AAC",
-            codec="AAC",
+            container="MP3",
+            codec="MP3",
         )
 
     def build_video(self, context: bpy.types.Context):
         """Build video from the rendered frames using ffmpeg."""
 
-        props = context.scene.playblast
-        include_audio = props.video.include_audio
-        output_path = props.file.full_path
-        codec = props.video.codec
+        playblast = context.scene.playblast
+        output_path = playblast.file.full_path
+        codec = playblast.video.codec
+        include_audio = playblast.video.include_audio
+        enable_burn_in = playblast.burn_in.enable
 
         # Get crf for different codecs
         match codec:
@@ -389,13 +404,13 @@ class PLAYBLAST_OT_run(bpy.types.Operator):
             f"-crf {crf} " +
             "-pix_fmt yuv420p " +
             f"-frames:v {self.frame_end - self.frame_start + 1} " +
-            f"-vf \"subtitles='{escape_sub_path}':fontsdir='{escape_font_path}'\" " +
+            (f"-vf \"subtitles='{escape_sub_path}':fontsdir='{escape_font_path}'\" " if enable_burn_in else "") +
             f'"{output_path}"'
         )  # fmt: skip
 
         try:
             print("Executing command:", ffmpeg_cmd)
-            subprocess.run(ffmpeg_cmd, check=True)
+            subprocess.run(ffmpeg_cmd, shell=True, check=True)
             self.report(
                 {"INFO"},
                 rpt_(
@@ -420,37 +435,20 @@ class PLAYBLAST_OT_import_settings(bpy.types.Operator, ImportHelper):
     filter_glob: bpy.props.StringProperty(default="*.json", options={"HIDDEN"})
 
     def execute(self, context):
-        props = context.scene.playblast
+        playblast = context.scene.playblast
         with open(self.filepath, "r", encoding="utf-8") as f:
             data = json.load(f)
 
-        props.video.codec = data.get("video.codec", props.video.codec)
-        props.video.include_audio = data.get(
-            "video.include_audio", props.video.include_audio
-        )
-        props.file.extension = data.get("file.extension", props.file.extension)
-        props.burn_in.enable = data.get("burn_in.enable", props.burn_in.enable)
-        props.burn_in.preview = data.get("burn_in.preview", props.burn_in.preview)
-        props.burn_in.font_family = data.get(
-            "burn_in.font_family", props.burn_in.font_family
-        )
-        props.burn_in.font_size = data.get("burn_in.font_size", props.burn_in.font_size)
-        props.burn_in.margin = data.get("burn_in.margin", props.burn_in.margin)
-        props.burn_in.color = data.get("burn_in.color", list(props.burn_in.color))
-        props.burn_in.top_left = data.get("burn_in.top_left", props.burn_in.top_left)
-        props.burn_in.top_center = data.get(
-            "burn_in.top_center", props.burn_in.top_center
-        )
-        props.burn_in.top_right = data.get("burn_in.top_right", props.burn_in.top_right)
-        props.burn_in.bottom_left = data.get(
-            "burn_in.bottom_left", props.burn_in.bottom_left
-        )
-        props.burn_in.bottom_center = data.get(
-            "burn_in.bottom_center", props.burn_in.bottom_center
-        )
-        props.burn_in.bottom_right = data.get(
-            "burn_in.bottom_right", props.burn_in.bottom_right
-        )
+        # Reuse the same data structure as preset
+        for attr, value in data.items():
+            _, prop_group, prop_name = attr.split(".")
+            prop = getattr(playblast, prop_group)
+
+            # Convert list back to color property
+            if isinstance(getattr(prop, prop_name), bpy.types.bpy_prop_array):
+                value = tuple(value)
+
+            setattr(prop, prop_name, value)
 
         return {"FINISHED"}
 
@@ -464,24 +462,19 @@ class PLAYBLAST_OT_export_settings(bpy.types.Operator, ExportHelper):
     filter_glob: bpy.props.StringProperty(default="*.json", options={"HIDDEN"})
 
     def execute(self, context: bpy.types.Context):
-        props = context.scene.playblast
-        data = {
-            "video.codec": props.video.codec,
-            "video.include_audio": props.video.include_audio,
-            "file.extension": props.file.extension,
-            "burn_in.enable": props.burn_in.enable,
-            "burn_in.preview": props.burn_in.preview,
-            "burn_in.font_family": props.burn_in.font_family,
-            "burn_in.font_size": props.burn_in.font_size,
-            "burn_in.margin": props.burn_in.margin,
-            "burn_in.color": list(props.burn_in.color),
-            "burn_in.top_left": props.burn_in.top_left,
-            "burn_in.top_center": props.burn_in.top_center,
-            "burn_in.top_right": props.burn_in.top_right,
-            "burn_in.bottom_left": props.burn_in.bottom_left,
-            "burn_in.bottom_center": props.burn_in.bottom_center,
-            "burn_in.bottom_right": props.burn_in.bottom_right,
-        }
+        playblast = context.scene.playblast
+
+        # Reuse the same data structure as preset
+        data = {}
+        for attr in PLAYBLAST_OT_preset_add.preset_values:
+            _, prop_group, prop_name = attr.split(".")
+            value = getattr(getattr(playblast, prop_group), prop_name)
+
+            # Convert color to list for json serialization
+            if isinstance(value, bpy.types.bpy_prop_array):
+                value = list(value)
+            
+            data[attr] = value
 
         with open(self.filepath, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=4, ensure_ascii=False)
