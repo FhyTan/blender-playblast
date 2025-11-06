@@ -1,7 +1,8 @@
 import logging
 import os
+from functools import partial
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Literal, Tuple
 
 import blf
 import bpy
@@ -10,13 +11,13 @@ from bpy_extras.view3d_utils import location_3d_to_region_2d
 from gpu_extras.batch import batch_for_shader
 
 from .metadata import get_metadata
-from .paths import BFONT_PATH, DEFAULT_SETTINGS_FILE
+from .paths import BFONT_PATH
 
 logger = logging.getLogger(__name__)
 
 
-def draw_text_in_viewport_handler():
-    """Handler to draw burn-in text on the viewport"""
+def preview_burn_in_handler():
+    """Handler to draw burn-in text on the viewport to preview burn-in effect."""
 
     def poll(context: bpy.types.Context) -> bool:
         """Check if the current context is valid for drawing burn-in text"""
@@ -79,13 +80,7 @@ def draw_text_in_viewport_handler():
     if not poll(context):
         return
 
-    props = context.scene.playblast.burn_in
-    if not props.enable:
-        return
-
-    if not props.preview:
-        return
-
+    playblast = context.scene.playblast
     res_x = context.scene.render.resolution_x
     top_right, bottom_right, bottom_left, top_left = get_camera_frame_rect(context)
     metadata = get_metadata(context)
@@ -94,15 +89,15 @@ def draw_text_in_viewport_handler():
     factor = (bottom_right[0] - bottom_left[0]) / res_x
 
     # Get font properties
-    font_path = props.font_family
+    font_path = playblast.burn_in.font_family
     if not font_path or not os.path.exists(font_path):
         font_path = BFONT_PATH
     else:
         font_path = Path(font_path)
     font_id = blf.load(font_path.as_posix())
-    font_size = int(props.font_size * factor)
-    font_color = props.color
-    font_margin = int(props.margin * factor)
+    font_size = int(playblast.burn_in.font_size * factor)
+    font_color = playblast.burn_in.color
+    font_margin = int(playblast.burn_in.margin * factor)
 
     blf.size(font_id, font_size)
     blf.color(font_id, *font_color)
@@ -161,7 +156,7 @@ def draw_text_in_viewport_handler():
     ]
 
     for pos, get_position in positions:
-        text = getattr(props, pos)
+        text = getattr(playblast.burn_in, pos)
         try:
             text = text.format_map(metadata)
         except Exception:
@@ -174,13 +169,59 @@ def draw_text_in_viewport_handler():
         blf.draw(font_id, text)
 
 
+preview_handler = None
+
+
+def register_or_unregister_preview_handler(
+    mode: Literal["register", "unregister", "auto"] = "auto",
+):
+    """Register or unregister the preview burn-in handler.
+
+    Preview handler only be registered when user enables the burn-in and preview.
+
+    When this function is called by update of the burn-in properties,
+    we can not access playblast.burn_in.enable directly, so we provide
+    a mode parameter to force register or unregister.
+    """
+    global preview_handler
+
+    if mode == "register":
+        register = True
+    elif mode == "unregister":
+        register = False
+    else:  # auto
+        playblast = bpy.context.scene.playblast
+        register = playblast.burn_in.enable and playblast.burn_in.preview
+
+    if register is True and preview_handler is None:
+        print("Register preview burn-in handler")
+        preview_handler = bpy.types.SpaceView3D.draw_handler_add(
+            preview_burn_in_handler, (), "WINDOW", "POST_PIXEL"
+        )
+
+    if register is False and preview_handler is not None:
+        print("Unregister preview burn-in handler")
+        bpy.types.SpaceView3D.draw_handler_remove(preview_handler, "WINDOW")
+        preview_handler = None
+
+
 @bpy.app.handlers.persistent
-def load_default_settings_for_new_file(*args):
-    """Load the default playblast settings when a new Blender file is created"""
+def load_post_handler(*args):
+    register_or_unregister_preview_handler("auto")
 
-    if not os.path.exists(DEFAULT_SETTINGS_FILE):
-        return
 
-    if bpy.context.scene.playblast.first_load:
-        bpy.ops.playblast.import_settings(filepath=DEFAULT_SETTINGS_FILE.as_posix())
-        bpy.context.scene.playblast.first_load = False
+def register():
+    bpy.app.handlers.load_post.append(load_post_handler)
+
+    # Delay the preview handler registration to avoid issues during startup
+    bpy.app.timers.register(
+        partial(register_or_unregister_preview_handler, "auto"),
+        first_interval=0.1,
+    )
+
+
+def unregister():
+    bpy.app.handlers.load_post.remove(load_post_handler)
+
+    # Always unregister the preview handler on unload
+    register_or_unregister_preview_handler("unregister")

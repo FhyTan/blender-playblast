@@ -19,5 +19,3 @@ TEMPORARY_OUTPUT_DIR = Path(tempfile.gettempdir(), "blender_playblast")
 # This will be automatically removed if the add-on is uninstalled.
 USER_DATA_DIR = Path(bpy.utils.extension_path_user(__package__, create=True))
 
-# Path to the default settings file
-DEFAULT_SETTINGS_FILE = USER_DATA_DIR / "default.json"

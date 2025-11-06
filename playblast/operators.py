@@ -263,6 +263,47 @@ class PLAYBLAST_OT_run(bpy.types.Operator):
         # Also scale margin to keep aspect ratio
         margin = props.burn_in.margin * props.override.scale // 100
 
+        # Notice that the origin (0,0) is at the top-left corner for ass subtitles
+        # pos, align, x, y
+        vars = [
+            (
+                "top_left",
+                "7",
+                margin,
+                margin,
+            ),
+            (
+                "top_center",
+                "8",
+                res_x // 2,
+                margin,
+            ),
+            (
+                "top_right",
+                "9",
+                res_x - margin,
+                margin,
+            ),
+            (
+                "bottom_left",
+                "1",
+                margin,
+                res_y - margin,
+            ),
+            (
+                "bottom_center",
+                "2",
+                res_x // 2,
+                res_y - margin,
+            ),
+            (
+                "bottom_right",
+                "3",
+                res_x - margin,
+                res_y - margin,
+            ),
+        ]
+
         dialogues = []
         template_dialogue = "Dialogue: 0,{start},{end},default,,0,0,0,,{{\\an{align}\\pos({x},{y})}}{text}"
         for frame in range(self.frame_start, self.frame_end + 1):
@@ -270,46 +311,13 @@ class PLAYBLAST_OT_run(bpy.types.Operator):
             start = frame_to_timecode(frame - self.frame_start, fps)
             end = frame_to_timecode(frame - self.frame_start + 1, fps)
 
-            # Notice that the origin (0,0) is at the top-left corner for ass subtitles
-            for pos in (
-                "top_left",
-                "top_center",
-                "top_right",
-                "bottom_left",
-                "bottom_center",
-                "bottom_right",
-            ):
-                text = getattr(props.burn_in, f"{pos}")
+            for pos, align, x, y in vars:
+                text = getattr(props.burn_in, pos)
                 try:
                     text = text.format_map(metadata)
                 except Exception:
                     self.report(f'Error burn in text in {pos}: "{text}"')
                     continue
-
-                if pos == "top_left":
-                    align = "7"
-                    x = margin
-                    y = margin
-                elif pos == "top_center":
-                    align = "8"
-                    x = res_x // 2
-                    y = margin
-                elif pos == "top_right":
-                    align = "9"
-                    x = res_x - margin
-                    y = margin
-                elif pos == "bottom_left":
-                    align = "1"
-                    x = margin
-                    y = res_y - margin
-                elif pos == "bottom_center":
-                    align = "2"
-                    x = res_x // 2
-                    y = res_y - margin
-                elif pos == "bottom_right":
-                    align = "3"
-                    x = res_x - margin
-                    y = res_y - margin
 
                 dialogue = template_dialogue.format(
                     start=start,

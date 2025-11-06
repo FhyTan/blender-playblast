@@ -131,7 +131,7 @@ class PLAYBLAST_PT_burn_in(bpy.types.Panel):
         burn_in_props = context.scene.playblast.burn_in
         layout.prop(burn_in_props, "enable", text="")
         layout.popover(
-            panel="VIEW3D_PT_playblast_burn_in_help", text="", icon="QUESTION"
+            panel="PLAYBLAST_PT_burn_in_help", text="", icon="QUESTION"
         )
 
     def draw(self, context: bpy.types.Context):
@@ -196,11 +196,6 @@ class PLAYBLAST_PT_settings(bpy.types.Panel):
         layout = self.layout
         layout.use_property_split = True
         layout.use_property_decorate = False
-
-        col = layout.column()
-        col.operator(
-            "playblast.save_as_default", text="Save as Default", icon="FILE_TICK"
-        )
 
         row = layout.row()
         row.operator("playblast.import_settings", text="Import", icon="IMPORT")

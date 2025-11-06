@@ -16,41 +16,22 @@ import bpy
 from . import handlers, operators, panels, properties
 from .translations import translations_dict
 
-draw_handler = None
-
 
 def register():
-    global draw_handler
-
-    # Register Translations
     # bpy.app.translations.register(__name__, translations_dict)
-
     properties.register()
     operators.register()
     panels.register()
-
-    # Register Handlers
-    bpy.app.handlers.load_post.append(handlers.load_default_settings_for_new_file)
-    draw_handler = bpy.types.SpaceView3D.draw_handler_add(
-        handlers.draw_text_in_viewport_handler, (), "WINDOW", "POST_PIXEL"
-    )
+    handlers.register()
 
     print(__name__, "registered")
 
 
 def unregister():
-    global draw_handler
-
-    # Unregister Handlers
-    if draw_handler is not None:
-        bpy.types.SpaceView3D.draw_handler_remove(draw_handler, "WINDOW")
-    bpy.app.handlers.load_post.remove(handlers.load_default_settings_for_new_file)
-
+    handlers.unregister()
     panels.unregister()
     operators.unregister()
     properties.unregister()
-
-    # Unregister Translations
     # bpy.app.translations.unregister(__name__)
 
     print(__name__, "unregistered")

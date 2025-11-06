@@ -1,5 +1,6 @@
 import bpy
 
+from . import handlers
 from .paths import TEMPORARY_OUTPUT_DIR
 
 
@@ -97,8 +98,10 @@ def get_full_path(self):
     ver = self.version_str
     ext = self.extension
 
-    if not dir or dir.strip() == "//":
+    if not dir:
         dir = bpy.path.abspath("//")
+    else:
+        dir = bpy.path.abspath(dir)
 
     if not dir:
         dir = TEMPORARY_OUTPUT_DIR.as_posix()
@@ -118,11 +121,12 @@ def get_full_path(self):
 class FileProperties(bpy.types.PropertyGroup):
     directory: bpy.props.StringProperty(
         name="Directory",
-        description="Directory to save playblast file.\n"
-        "If not specified, use current blend file directory.\n"
-        "Or use system temp directory if blend file is not saved.",
+        description="Directory to save the playblast file. \n"
+        "Defaults to the current blend file's directory (`//`). \n"
+        "If the blend file is not saved, a temporary directory will be used instead.",
         subtype="DIR_PATH",
-        default="",
+        options={"PATH_SUPPORTS_BLEND_RELATIVE"},
+        default="//",
     )
 
     name: bpy.props.StringProperty(
@@ -173,11 +177,19 @@ class FileProperties(bpy.types.PropertyGroup):
     )
 
 
+def burn_in_preview_update(self, context):
+    if self.enable and self.preview:
+        handlers.register_or_unregister_preview_handler("register")
+    else:
+        handlers.register_or_unregister_preview_handler("unregister")
+
+
 class BurnInProperties(bpy.types.PropertyGroup):
     enable: bpy.props.BoolProperty(
         name="Enable Burn-In Data",
         description="Enable burn-in text overlay on the playblast.",
-        default=True,
+        default=False,
+        update=burn_in_preview_update,
     )
 
     preview: bpy.props.BoolProperty(
@@ -185,6 +197,7 @@ class BurnInProperties(bpy.types.PropertyGroup):
         description="Preview the burn-in text in the 3D viewport\n"
         "You need to be in Camera view to see it",
         default=True,
+        update=burn_in_preview_update,
     )
 
     font_family: bpy.props.StringProperty(
