@@ -4,10 +4,10 @@ msgstr ""
 "Project-Id-Version: Playblast 1.0.0 (0)\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-10-27 02:58+0800\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: __POT__\n"
+"PO-Revision-Date: 2025-11-07 10:00+0800\n"
+"Last-Translator: GitHub Copilot <EMAIL@ADDRESS>\n"
+"Language-Team: Chinese Simplified <LL@li.org>\n"
+"Language: zh_CN\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit"
@@ -22,15 +22,20 @@ msgctxt "Operator"
 msgid "Import Settings"
 msgstr "导入设置"
 
-#. :src: bpy.types.PLAYBLAST_OT_run
+#. :src: bpy.types.PLAYBLAST_OT_preset_add
+msgid "Add a Playblast Preset"
+msgstr "添加拍屏预设"
+
+#. :src: bpy.types.PLAYBLAST_OT_preset_add
+msgctxt "Operator"
+msgid "Add Playblast Preset"
+msgstr "添加拍屏预设"
+
+#. :src: bpy.types.RENDER_OT_playblast
+#: extensions/vscode_development/playblast/panels.py:39
 msgctxt "Operator"
 msgid "Run Playblast"
 msgstr "运行拍屏"
-
-#. :src: bpy.types.PLAYBLAST_OT_save_as_default
-msgctxt "Operator"
-msgid "Save As Default"
-msgstr "保存为默认"
 
 #. :src: bpy.types.PLAYBLAST_OT_export_settings
 msgid "Export current playblast settings to a file"
@@ -40,7 +45,7 @@ msgstr "将当前拍屏设置导出到文件"
 msgid "Import playblast settings from a file"
 msgstr "从文件导入拍屏设置"
 
-#. :src: bpy.types.PLAYBLAST_OT_run
+#. :src: bpy.types.RENDER_OT_playblast
 msgid ""
 "Create a playblast video of the current scene.\n"
 "Please ensure you have an active camera and ffmpeg is installed in your system."
@@ -48,9 +53,21 @@ msgstr ""
 "为当前场景创建拍屏视频。\n"
 "请确保场景有激活的相机且系统已安装 ffmpeg。"
 
-#. :src: bpy.types.PLAYBLAST_OT_save_as_default
-msgid "Save the current playblast settings as default, then your new blender file will use these playblast settings as default."
-msgstr "将当前拍屏设置保存为默认，新创建的 Blender 文件将使用这些默认设置。"
+#. :src: bpy.types.CollectionProperty
+msgid "Collection Definition"
+msgstr "集合定义"
+
+#. :src: bpy.types.CollectionProperty
+msgid "RNA collection property to define lists, arrays and mappings"
+msgstr "RNA 集合属性，用于定义列表、数组和映射"
+
+#. :src: bpy.types.CollectionProperty.fixed_type
+msgid "Pointer Type"
+msgstr "指针类型"
+
+#. :src: bpy.types.CollectionProperty.fixed_type
+msgid "Fixed pointer type, empty if variable type"
+msgstr "固定指针类型，如为可变类型则为空"
 
 #. :src: bpy.types.BurnInProperties.bottom_center
 msgid "Text to display in the bottom center"
@@ -118,12 +135,13 @@ msgstr "在右上角显示的文字"
 
 #. :src: bpy.types.FileProperties.directory
 msgid ""
-"Directory to save playblast file.\n"
-"If not specified, use current blend file directory.\n"
-"Or use system temp directory if blend file is not saved."
+"Directory to save the playblast file. \n"
+"Defaults to the current blend file's directory (`//`). \n"
+"If the blend file is not saved, a temporary directory will be used instead."
 msgstr ""
 "保存拍屏文件的目录。\n"
-"若未指定，使用当前 .blend 文件所在目录；若 .blend 未保存，则使用系统临时目录。"
+"默认为当前 .blend 文件所在目录 (`//`)。\n"
+"如果 .blend 文件尚未保存，将使用临时目录。"
 
 #. :src: bpy.types.FileProperties.extension
 msgid "File extension for playblast"
@@ -133,13 +151,17 @@ msgstr "拍屏文件的扩展名"
 msgid "MP4 format"
 msgstr "MP4 格式"
 
+#. :src: bpy.types.FileProperties.extension:'.mov'
+msgid "MOV format"
+msgstr "MOV 格式"
+
 #. :src: bpy.types.FileProperties.extension:'.avi'
 msgid "AVI format"
 msgstr "AVI 格式"
 
-#. :src: bpy.types.FileProperties.extension:'.mov'
-msgid "MOV format"
-msgstr "MOV 格式"
+#. :src: bpy.types.FileProperties.extension:'.mkv'
+msgid "MKV format"
+msgstr "MKV 格式"
 
 #. :src: bpy.types.FileProperties.full_path
 msgid ""
@@ -173,6 +195,62 @@ msgstr ""
 "只读属性。\n"
 "从版本号获取版本字符串。如果版本为 1，返回 v001；否则返回空字符串。"
 
+#. :src: bpy.types.OverrideProperties.frame_end
+msgid "End frame for the playblast"
+msgstr "拍屏的结束帧"
+
+#. :src: bpy.types.OverrideProperties.frame_start
+msgid "Start frame for the playblast"
+msgstr "拍屏的起始帧"
+
+#. :src: bpy.types.OverrideProperties.scale
+msgid "Scale factor for the playblast resolution"
+msgstr "拍屏分辨率的缩放因子"
+
+#. :src: bpy.types.OverrideProperties.show_overlays
+msgid "Show overlays like gizmos and outlines in the playblast"
+msgstr "在拍屏中显示诸如操纵器和轮廓线等叠加元素"
+
+#. :src: bpy.types.OverrideProperties.use_frame_range
+msgid ""
+"Use specific frame range for the playblast instead of the entire scene frame range\n"
+"If disabled, the playblast will use the scene's start and end frames"
+msgstr ""
+"为拍屏使用指定的帧范围而非整个场景的帧范围\n"
+"如果禁用，拍屏将使用场景的开始和结束帧"
+
+#. :src: bpy.types.OverrideProperties.use_viewport_shading
+msgid "Use Viewport Shading"
+msgstr "使用视口着色"
+
+#. :src: bpy.types.OverrideProperties.use_viewport_shading
+msgid ""
+"Use specific viewport shading mode for the playblast\n"
+"If disabled, the playblast will use the scene's viewport shading mode"
+msgstr ""
+"为拍屏使用指定的视口着色模式\n"
+"如果禁用，拍屏将使用场景的视口着色模式"
+
+#. :src: bpy.types.OverrideProperties.viewport_shading
+msgid "Viewport shading mode for the playblast"
+msgstr "拍屏的视口着色模式"
+
+#. :src: bpy.types.OverrideProperties.viewport_shading:'WIREFRAME'
+msgid "Wireframe shading"
+msgstr "线框着色"
+
+#. :src: bpy.types.OverrideProperties.viewport_shading:'SOLID'
+msgid "Solid shading"
+msgstr "实体着色"
+
+#. :src: bpy.types.OverrideProperties.viewport_shading:'MATERIAL'
+msgid "Material shading"
+msgstr "材质着色"
+
+#. :src: bpy.types.OverrideProperties.viewport_shading:'RENDERED'
+msgid "Rendered shading"
+msgstr "渲染着色"
+
 #. :src: bpy.types.PlayblastProperties.first_load
 msgid "First Load"
 msgstr "首次加载"
@@ -202,8 +280,8 @@ msgid "H.265"
 msgstr "H.265"
 
 #. :src: bpy.types.VideoProperties.codec:'libx265'
-msgid "HEVC codec"
-msgstr "HEVC 编码"
+msgid "H.265/HEVC codec"
+msgstr "H.265/HEVC 编码"
 
 #. :src: bpy.types.VideoProperties.codec:'mpeg4'
 msgid "MPEG-4 codec"
@@ -213,14 +291,6 @@ msgstr "MPEG-4 编码"
 msgid "AV1 codec"
 msgstr "AV1 编码"
 
-#. :src: bpy.types.VideoProperties.frame_end
-msgid "End frame for the playblast"
-msgstr "拍屏的结束帧"
-
-#. :src: bpy.types.VideoProperties.frame_start
-msgid "Start frame for the playblast"
-msgstr "拍屏的起始帧"
-
 #. :src: bpy.types.VideoProperties.include_audio
 msgid "Include Audio"
 msgstr "包含音频"
@@ -229,111 +299,157 @@ msgstr "包含音频"
 msgid "Include audio in the playblast video"
 msgstr "在拍屏视频中包含音频"
 
-#. :src: bpy.types.VideoProperties.scale
-msgid "Scale factor for the playblast resolution"
-msgstr "拍屏分辨率的缩放因子"
-
-#. :src: bpy.types.VideoProperties.use_frame_range
-msgid "Use specific frame range for the playblast instead of the entire scene frame range"
-msgstr "使用指定的帧范围进行拍屏而非整个场景的帧范围"
-
-#: extensions/vscode_development/playblast/operators.py:75
-msgid "Playblast started, press ESC to cancel it"
-msgstr "拍屏已开始，按 ESC 可取消"
-
-#: extensions/vscode_development/playblast/operators.py:401
-msgid "Default playblast settings saved. New blender files will use these settings."
-msgstr "默认拍屏设置已保存。新建的 Blender 文件将使用这些设置。"
-
-#: extensions/vscode_development/playblast/operators.py:34
+#: extensions/vscode_development/playblast/operators.py:153
 msgid "FFmpeg is not installed or not found in PATH."
 msgstr "未安装 FFmpeg 或未在 PATH 中找到。"
 
-#: extensions/vscode_development/playblast/operators.py:104
-msgid "Playblast canceled"
-msgstr "拍屏已取消"
-
-#: extensions/vscode_development/playblast/operators.py:381
-msgid "Failed to build video with ffmpeg."
-msgstr "使用 ffmpeg 生成视频失败。"
-
-#: extensions/vscode_development/playblast/operators.py:386
+#: extensions/vscode_development/playblast/operators.py:417
 msgid "Playblast completed, saved to \"{}\", opening video..."
 msgstr "拍屏完成，已保存到 \"{}\"，正在打开视频..."
 
-#: extensions/vscode_development/playblast/operators.py:71
-msgid "Failed to set up running settings: "
-msgstr "设置运行配置失败："
+#: extensions/vscode_development/playblast/operators.py:424
+msgid "FFmpeg processing failed, please open console for details."
+msgstr "FFmpeg 处理失败，请打开控制台查看详细信息。"
 
-#: extensions/vscode_development/playblast/panels.py:20
-msgctxt "Operator"
-msgid "Run"
-msgstr "运行"
+#: extensions/vscode_development/playblast/panels.py:67
+msgid "Frame Range"
+msgstr "帧范围"
 
-#: extensions/vscode_development/playblast/panels.py:25
-msgid "Video Codec"
-msgstr "视频编码"
-
-#: extensions/vscode_development/playblast/panels.py:26
-msgid "Resolution Scale"
-msgstr "分辨率缩放"
-
-#: extensions/vscode_development/playblast/panels.py:28
-msgid "Override Range"
-msgstr "覆盖帧范围"
-
-#: extensions/vscode_development/playblast/panels.py:32
+#: extensions/vscode_development/playblast/panels.py:71
 msgid "Start"
 msgstr "开始"
 
-#: extensions/vscode_development/playblast/panels.py:33
+#: extensions/vscode_development/playblast/panels.py:72
 msgid "End"
 msgstr "结束"
 
-#: extensions/vscode_development/playblast/panels.py:57
+#: extensions/vscode_development/playblast/panels.py:77
+msgid "Viewport Shading"
+msgstr "视口着色"
+
+#: extensions/vscode_development/playblast/panels.py:105
 msgid "Default to current blend file directory"
 msgstr "默认使用当前 .blend 文件目录"
 
-#: extensions/vscode_development/playblast/panels.py:61
+#: extensions/vscode_development/playblast/panels.py:109
 msgid "Version"
 msgstr "版本"
 
-#: extensions/vscode_development/playblast/panels.py:103
+#: extensions/vscode_development/playblast/panels.py:149
 msgid "Default to Blender Font"
 msgstr "默认使用 Blender 字体"
 
-#: extensions/vscode_development/playblast/panels.py:128
+#: extensions/vscode_development/playblast/panels.py:174
 msgid "Use curly braces {} to denote variables in text, for example {datetime} for the current time."
 msgstr "在文本中使用花括号 {} 表示变量，例如 {datetime} 表示当前时间。"
 
-#: extensions/vscode_development/playblast/panels.py:130
+#: extensions/vscode_development/playblast/panels.py:176
 msgid "The following variables are currently available:"
 msgstr "当前可用的变量如下："
 
-#: extensions/vscode_development/playblast/panels.py:154
-msgctxt "Operator"
-msgid "Save as Default"
-msgstr "保存为默认"
-
-#: extensions/vscode_development/playblast/panels.py:158
+#: extensions/vscode_development/playblast/panels.py:199
 msgctxt "Operator"
 msgid "Import"
 msgstr "导入"
 
-#: extensions/vscode_development/playblast/panels.py:159
+#: extensions/vscode_development/playblast/panels.py:200
 msgctxt "Operator"
 msgid "Export"
 msgstr "导出"
 
-#: extensions/vscode_development/playblast/panels.py:134
+#: extensions/vscode_development/playblast/panels.py:180
 msgid "{}"
+msgstr "{}"
+
+#: extensions/vscode_development/playblast/utils.py:56
+msgid "File not found: {!r}"
+msgstr "未找到文件：{!r}"
+
+#: extensions/vscode_development/playblast/utils.py:141
+msgid ""
+"Couldn't run external animation player with command {!r}\n"
+"{:s}"
 msgstr ""
+"无法使用命令 {!r} 运行外部动画播放器\n"
+"{:s}"
 
 #. :src: Add-on Playblast info: name
 msgid "Playblast"
 msgstr "拍屏"
 
 #. :src: Add-on Playblast info: description
-msgid "Blender playblast tool similarly to Maya"
-msgstr "类似于 Maya 的 Blender 拍屏工具"
+msgid "Blender playblast tool similarly to Maya playblast"
+msgstr "类似于 Maya 拍屏的 Blender 拍屏工具"
+
+
+#~ msgid "Playblast canceled"
+#~ msgstr "拍屏已取消"
+
+
+#~ msgid "Playblast started, press ESC to cancel it"
+#~ msgstr "拍屏已开始，按 ESC 可取消"
+
+
+#~ msgid "Failed to set up running settings: "
+#~ msgstr "设置运行配置失败："
+
+
+#~ msgid ""
+#~ "Directory to save playblast file.\n"
+#~ "If not specified, use current blend file directory.\n"
+#~ "Or use system temp directory if blend file is not saved."
+#~ msgstr ""
+#~ "保存拍屏文件的目录。\n"
+#~ "若未指定，使用当前 .blend 文件所在目录；若 .blend 未保存，则使用系统临时目录。"
+
+
+#~ msgctxt "Operator"
+#~ msgid "Save as Default"
+#~ msgstr "保存为默认"
+
+
+#~ msgid "Save the current playblast settings as default, then your new blender file will use these playblast settings as default."
+#~ msgstr "将当前拍屏设置保存为默认，新创建的 Blender 文件将使用这些默认设置。"
+
+
+#~ msgid "Failed to build video with ffmpeg."
+#~ msgstr "使用 ffmpeg 生成视频失败。"
+
+
+#~ msgid "Video Codec"
+#~ msgstr "视频编码"
+
+
+#~ msgctxt "Operator"
+#~ msgid "Run"
+#~ msgstr "运行"
+
+
+#~ msgid "Override Range"
+#~ msgstr "覆盖帧范围"
+
+
+#~ msgid "Use specific frame range for the playblast instead of the entire scene frame range"
+#~ msgstr "使用指定的帧范围进行拍屏而非整个场景的帧范围"
+
+
+#~ msgid "Blender playblast tool similarly to Maya"
+#~ msgstr "类似于 Maya 的 Blender 拍屏工具"
+
+
+#~ msgid "HEVC codec"
+#~ msgstr "HEVC 编码"
+
+
+#~ msgctxt "Operator"
+#~ msgid "Save As Default"
+#~ msgstr "保存为默认"
+
+
+#~ msgid "Default playblast settings saved. New blender files will use these settings."
+#~ msgstr "默认拍屏设置已保存。新建的 Blender 文件将使用这些设置。"
+
+
+#~ msgid "Resolution Scale"
+#~ msgstr "分辨率缩放"
 

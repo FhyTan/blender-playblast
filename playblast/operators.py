@@ -418,10 +418,10 @@ class PLAYBLAST_OT_run(bpy.types.Operator):
                 ).format(output_path),
             )
             play_video(output_path)
-        except subprocess.CalledProcessError as e:
+        except subprocess.CalledProcessError:
             self.report(
                 {"ERROR"},
-                f"FFmpeg processing failed, please open console for details.\n{e}",
+                "FFmpeg processing failed, please open console for details.",
             )
             return
 
@@ -473,7 +473,7 @@ class PLAYBLAST_OT_export_settings(bpy.types.Operator, ExportHelper):
             # Convert color to list for json serialization
             if isinstance(value, bpy.types.bpy_prop_array):
                 value = list(value)
-            
+
             data[attr] = value
 
         with open(self.filepath, "w", encoding="utf-8") as f:

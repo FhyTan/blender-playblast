@@ -31,8 +31,8 @@ Ensure there is an active camera in the scene, go to the playblast panel and cli
 
 - One-click generation of current scene preview videos
 - Support for multiple video codec formats (H.264, H.265, MPEG-4, AV1)
-- Adjustable resolution scaling (1-100%)
-- Support for custom frame ranges
+- Can synchronously output audio
+- Parameters overridden in the panel do not affect scene settings, only take effect during playblast
 
 ### Burn-in Subtitles
 
@@ -41,16 +41,16 @@ Ensure there is an active camera in the scene, go to the playblast panel and cli
 - Display scene information, timestamps, frame numbers and other metadata
 - Support for custom fonts, colors, sizes and margins
 
-### Audio Processing
-
-- Automatically include audio tracks from the scene
-- Synchronized output with video
-
 ### Settings Management
 
-- Save current settings as default configuration
-- Import/export settings files
-- Team sharing of unified playblast formats
+- Use preset panels to easily switch between different settings
+- Import/export settings files for easy team sharing
+
+## Line Breaks
+
+If your overlay information needs line breaks, you can use `\N` to represent line breaks. Although you can't see the effect in the Viewport (Blender text drawing doesn't support line breaks), it will work in the actual video.
+
+![newline](images/newline.png)
 
 ## Contributing
 

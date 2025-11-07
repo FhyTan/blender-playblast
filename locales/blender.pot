@@ -12,14 +12,19 @@ msgctxt "Operator"
 msgid "Import Settings"
 msgstr ""
 
-#. :src: bpy.types.PLAYBLAST_OT_run
-msgctxt "Operator"
-msgid "Run Playblast"
+#. :src: bpy.types.PLAYBLAST_OT_preset_add
+msgid "Add a Playblast Preset"
 msgstr ""
 
-#. :src: bpy.types.PLAYBLAST_OT_save_as_default
+#. :src: bpy.types.PLAYBLAST_OT_preset_add
 msgctxt "Operator"
-msgid "Save As Default"
+msgid "Add Playblast Preset"
+msgstr ""
+
+#. :src: bpy.types.RENDER_OT_playblast
+#: extensions/vscode_development/playblast/panels.py:39
+msgctxt "Operator"
+msgid "Run Playblast"
 msgstr ""
 
 #. :src: bpy.types.PLAYBLAST_OT_export_settings
@@ -30,14 +35,26 @@ msgstr ""
 msgid "Import playblast settings from a file"
 msgstr ""
 
-#. :src: bpy.types.PLAYBLAST_OT_run
+#. :src: bpy.types.RENDER_OT_playblast
 msgid ""
 "Create a playblast video of the current scene.\n"
 "Please ensure you have an active camera and ffmpeg is installed in your system."
 msgstr ""
 
-#. :src: bpy.types.PLAYBLAST_OT_save_as_default
-msgid "Save the current playblast settings as default, then your new blender file will use these playblast settings as default."
+#. :src: bpy.types.CollectionProperty
+msgid "Collection Definition"
+msgstr ""
+
+#. :src: bpy.types.CollectionProperty
+msgid "RNA collection property to define lists, arrays and mappings"
+msgstr ""
+
+#. :src: bpy.types.CollectionProperty.fixed_type
+msgid "Pointer Type"
+msgstr ""
+
+#. :src: bpy.types.CollectionProperty.fixed_type
+msgid "Fixed pointer type, empty if variable type"
 msgstr ""
 
 #. :src: bpy.types.BurnInProperties.bottom_center
@@ -104,9 +121,9 @@ msgstr ""
 
 #. :src: bpy.types.FileProperties.directory
 msgid ""
-"Directory to save playblast file.\n"
-"If not specified, use current blend file directory.\n"
-"Or use system temp directory if blend file is not saved."
+"Directory to save the playblast file. \n"
+"Defaults to the current blend file's directory (`//`). \n"
+"If the blend file is not saved, a temporary directory will be used instead."
 msgstr ""
 
 #. :src: bpy.types.FileProperties.extension
@@ -117,12 +134,16 @@ msgstr ""
 msgid "MP4 format"
 msgstr ""
 
+#. :src: bpy.types.FileProperties.extension:'.mov'
+msgid "MOV format"
+msgstr ""
+
 #. :src: bpy.types.FileProperties.extension:'.avi'
 msgid "AVI format"
 msgstr ""
 
-#. :src: bpy.types.FileProperties.extension:'.mov'
-msgid "MOV format"
+#. :src: bpy.types.FileProperties.extension:'.mkv'
+msgid "MKV format"
 msgstr ""
 
 #. :src: bpy.types.FileProperties.full_path
@@ -153,6 +174,58 @@ msgid ""
 "Get version string from the version number.If version is 1, return v001.Else return empty string."
 msgstr ""
 
+#. :src: bpy.types.OverrideProperties.frame_end
+msgid "End frame for the playblast"
+msgstr ""
+
+#. :src: bpy.types.OverrideProperties.frame_start
+msgid "Start frame for the playblast"
+msgstr ""
+
+#. :src: bpy.types.OverrideProperties.scale
+msgid "Scale factor for the playblast resolution"
+msgstr ""
+
+#. :src: bpy.types.OverrideProperties.show_overlays
+msgid "Show overlays like gizmos and outlines in the playblast"
+msgstr ""
+
+#. :src: bpy.types.OverrideProperties.use_frame_range
+msgid ""
+"Use specific frame range for the playblast instead of the entire scene frame range\n"
+"If disabled, the playblast will use the scene's start and end frames"
+msgstr ""
+
+#. :src: bpy.types.OverrideProperties.use_viewport_shading
+msgid "Use Viewport Shading"
+msgstr ""
+
+#. :src: bpy.types.OverrideProperties.use_viewport_shading
+msgid ""
+"Use specific viewport shading mode for the playblast\n"
+"If disabled, the playblast will use the scene's viewport shading mode"
+msgstr ""
+
+#. :src: bpy.types.OverrideProperties.viewport_shading
+msgid "Viewport shading mode for the playblast"
+msgstr ""
+
+#. :src: bpy.types.OverrideProperties.viewport_shading:'WIREFRAME'
+msgid "Wireframe shading"
+msgstr ""
+
+#. :src: bpy.types.OverrideProperties.viewport_shading:'SOLID'
+msgid "Solid shading"
+msgstr ""
+
+#. :src: bpy.types.OverrideProperties.viewport_shading:'MATERIAL'
+msgid "Material shading"
+msgstr ""
+
+#. :src: bpy.types.OverrideProperties.viewport_shading:'RENDERED'
+msgid "Rendered shading"
+msgstr ""
+
 #. :src: bpy.types.PlayblastProperties.first_load
 msgid "First Load"
 msgstr ""
@@ -178,7 +251,7 @@ msgid "H.265"
 msgstr ""
 
 #. :src: bpy.types.VideoProperties.codec:'libx265'
-msgid "HEVC codec"
+msgid "H.265/HEVC codec"
 msgstr ""
 
 #. :src: bpy.types.VideoProperties.codec:'mpeg4'
@@ -189,14 +262,6 @@ msgstr ""
 msgid "AV1 codec"
 msgstr ""
 
-#. :src: bpy.types.VideoProperties.frame_end
-msgid "End frame for the playblast"
-msgstr ""
-
-#. :src: bpy.types.VideoProperties.frame_start
-msgid "Start frame for the playblast"
-msgstr ""
-
 #. :src: bpy.types.VideoProperties.include_audio
 msgid "Include Audio"
 msgstr ""
@@ -205,104 +270,76 @@ msgstr ""
 msgid "Include audio in the playblast video"
 msgstr ""
 
-#. :src: bpy.types.VideoProperties.scale
-msgid "Scale factor for the playblast resolution"
-msgstr ""
-
-#. :src: bpy.types.VideoProperties.use_frame_range
-msgid "Use specific frame range for the playblast instead of the entire scene frame range"
-msgstr ""
-
-#: extensions/vscode_development/playblast/operators.py:75
-msgid "Playblast started, press ESC to cancel it"
-msgstr ""
-
-#: extensions/vscode_development/playblast/operators.py:401
-msgid "Default playblast settings saved. New blender files will use these settings."
-msgstr ""
-
-#: extensions/vscode_development/playblast/operators.py:34
+#: extensions/vscode_development/playblast/operators.py:153
 msgid "FFmpeg is not installed or not found in PATH."
 msgstr ""
 
-#: extensions/vscode_development/playblast/operators.py:104
-msgid "Playblast canceled"
-msgstr ""
-
-#: extensions/vscode_development/playblast/operators.py:381
-msgid "Failed to build video with ffmpeg."
-msgstr ""
-
-#: extensions/vscode_development/playblast/operators.py:386
+#: extensions/vscode_development/playblast/operators.py:417
 msgid "Playblast completed, saved to \"{}\", opening video..."
 msgstr ""
 
-#: extensions/vscode_development/playblast/operators.py:71
-msgid "Failed to set up running settings: "
+#: extensions/vscode_development/playblast/operators.py:424
+msgid "FFmpeg processing failed, please open console for details."
 msgstr ""
 
-#: extensions/vscode_development/playblast/panels.py:20
-msgctxt "Operator"
-msgid "Run"
+#: extensions/vscode_development/playblast/panels.py:67
+msgid "Frame Range"
 msgstr ""
 
-#: extensions/vscode_development/playblast/panels.py:25
-msgid "Video Codec"
-msgstr ""
-
-#: extensions/vscode_development/playblast/panels.py:26
-msgid "Resolution Scale"
-msgstr ""
-
-#: extensions/vscode_development/playblast/panels.py:28
-msgid "Override Range"
-msgstr ""
-
-#: extensions/vscode_development/playblast/panels.py:32
+#: extensions/vscode_development/playblast/panels.py:71
 msgid "Start"
 msgstr ""
 
-#: extensions/vscode_development/playblast/panels.py:33
+#: extensions/vscode_development/playblast/panels.py:72
 msgid "End"
 msgstr ""
 
-#: extensions/vscode_development/playblast/panels.py:57
+#: extensions/vscode_development/playblast/panels.py:77
+msgid "Viewport Shading"
+msgstr ""
+
+#: extensions/vscode_development/playblast/panels.py:105
 msgid "Default to current blend file directory"
 msgstr ""
 
-#: extensions/vscode_development/playblast/panels.py:61
+#: extensions/vscode_development/playblast/panels.py:109
 msgid "Version"
 msgstr ""
 
-#: extensions/vscode_development/playblast/panels.py:103
+#: extensions/vscode_development/playblast/panels.py:149
 msgid "Default to Blender Font"
 msgstr ""
 
-#: extensions/vscode_development/playblast/panels.py:128
+#: extensions/vscode_development/playblast/panels.py:174
 msgid "Use curly braces {} to denote variables in text, for example {datetime} for the current time."
 msgstr ""
 
-#: extensions/vscode_development/playblast/panels.py:130
+#: extensions/vscode_development/playblast/panels.py:176
 msgid "The following variables are currently available:"
 msgstr ""
 
-#: extensions/vscode_development/playblast/panels.py:154
-msgctxt "Operator"
-msgid "Save as Default"
-msgstr ""
-
-#: extensions/vscode_development/playblast/panels.py:158
+#: extensions/vscode_development/playblast/panels.py:199
 msgctxt "Operator"
 msgid "Import"
 msgstr ""
 
-#: extensions/vscode_development/playblast/panels.py:159
+#: extensions/vscode_development/playblast/panels.py:200
 msgctxt "Operator"
 msgid "Export"
 msgstr ""
 
-#: extensions/vscode_development/playblast/panels.py:134
+#: extensions/vscode_development/playblast/panels.py:180
 msgid "{}"
+msgstr ""
+
+#: extensions/vscode_development/playblast/utils.py:56
+msgid "File not found: {!r}"
+msgstr ""
+
+#: extensions/vscode_development/playblast/utils.py:141
+msgid ""
+"Couldn't run external animation player with command {!r}\n"
+"{:s}"
 msgstr ""
 
 #: Add-on Playblast info: name
@@ -310,6 +347,6 @@ msgid "Playblast"
 msgstr ""
 
 #: Add-on Playblast info: description
-msgid "Blender playblast tool similarly to Maya"
+msgid "Blender playblast tool similarly to Maya playblast"
 msgstr ""
 
