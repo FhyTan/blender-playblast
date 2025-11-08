@@ -26,15 +26,8 @@ def render_properties_override(context: bpy.types.Context):
     playblast = scene.playblast
     metadata = get_metadata(context)
 
-    for area in context.screen.areas:
-        if area.type == "VIEW_3D":
-            for space in area.spaces:
-                if space.type == "VIEW_3D":
-                    region = space.region_3d
-                    break
-            break
-    if area.type != "VIEW_3D" or space.type != "VIEW_3D":
-        raise RuntimeError("Active area is not a 3D Viewport")
+    space = context.space_data
+    region = space.region_3d
 
     # Store original render properties
     resolution_x = render.resolution_x
