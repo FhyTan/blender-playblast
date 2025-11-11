@@ -2,16 +2,16 @@ schema_version = "1.0.0"
 
 # Example of manifest file for a Blender extension
 # Change the values according to your extension
-id = "playblast"
+id = "anim_reviewer"
 version = "1.1.0"
-name = "Playblast"
-tagline = "Blender playblast tool similarly to Maya playblast"
+name = "Anim Reviewer"
+tagline = "Enhance blender playblast capabilities for animation review"
 maintainer = "FhyTan <FhyTan@outlook.com>"
 # Supported types: "add-on", "theme"
 type = "add-on"
 
 # Optional link to documentation, support, source files, etc
-website = "https://github.com/FhyTan/blender-playblast"
+website = "https://github.com/FhyTan/blender-anim-reviewer"
 
 # Optional list defined by Blender and server, see:
 # https://docs.blender.org/manual/en/dev/advanced/extensions/tags.html

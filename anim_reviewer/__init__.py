@@ -18,7 +18,7 @@ from .translations import translations_dict
 
 
 def register():
-    bpy.app.translations.register(__name__, translations_dict)
+    # bpy.app.translations.register(__name__, translations_dict)
     properties.register()
     operators.register()
     panels.register()
@@ -32,6 +32,6 @@ def unregister():
     panels.unregister()
     operators.unregister()
     properties.unregister()
-    bpy.app.translations.unregister(__name__)
+    # bpy.app.translations.unregister(__name__)
 
     print(__name__, "unregistered")

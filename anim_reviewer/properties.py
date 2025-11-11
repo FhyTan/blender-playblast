@@ -125,7 +125,9 @@ class FileProperties(bpy.types.PropertyGroup):
         "Defaults to the current blend file's directory (`//`). \n"
         "If the blend file is not saved, a temporary directory will be used instead.",
         subtype="DIR_PATH",
-        options={"PATH_SUPPORTS_BLEND_RELATIVE"} if bpy.app.version >= (4,5) else set(),
+        options={"PATH_SUPPORTS_BLEND_RELATIVE"}
+        if bpy.app.version >= (4, 5)
+        else set(),
         default="//",
     )
 
@@ -266,21 +268,11 @@ class BurnInProperties(bpy.types.PropertyGroup):
     )
 
 
-class PlayblastProperties(bpy.types.PropertyGroup):
+class AnimReviewerProperties(bpy.types.PropertyGroup):
     video: bpy.props.PointerProperty(type=VideoProperties)
     override: bpy.props.PointerProperty(type=OverrideProperties)
     file: bpy.props.PointerProperty(type=FileProperties)
     burn_in: bpy.props.PointerProperty(type=BurnInProperties)
-
-    first_load: bpy.props.BoolProperty(
-        name="First Load",
-        description="Internal property.\n"
-        "Indicate if this is the first time loading the playblast settings.\n"
-        "If true, load default settings from the saved json file.\n"
-        "It will be set and persisted to false after the first load.",
-        default=True,
-        options={"HIDDEN"},
-    )
 
 
 classes = (
@@ -288,7 +280,7 @@ classes = (
     OverrideProperties,
     FileProperties,
     BurnInProperties,
-    PlayblastProperties,
+    AnimReviewerProperties,
 )
 
 
@@ -296,11 +288,13 @@ def register():
     for cls in classes:
         bpy.utils.register_class(cls)
 
-    bpy.types.Scene.playblast = bpy.props.PointerProperty(type=PlayblastProperties)
+    bpy.types.Scene.anim_reviewer = bpy.props.PointerProperty(
+        type=AnimReviewerProperties
+    )
 
 
 def unregister():
-    del bpy.types.Scene.playblast
+    del bpy.types.Scene.anim_reviewer
 
     for cls in reversed(classes):
         bpy.utils.unregister_class(cls)

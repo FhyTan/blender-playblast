@@ -23,7 +23,7 @@ def render_properties_override(context: bpy.types.Context):
 
     scene = context.scene
     render = scene.render
-    playblast = scene.playblast
+    anim_reviewer = scene.anim_reviewer
     metadata = get_metadata(context)
 
     space = context.space_data
@@ -57,10 +57,10 @@ def render_properties_override(context: bpy.types.Context):
     render.resolution_y = metadata["height"]
     render.resolution_percentage = 100
 
-    if playblast.override.use_frame_range:
+    if anim_reviewer.override.use_frame_range:
         scene.use_preview_range = True
-        scene.frame_preview_start = playblast.override.frame_start
-        scene.frame_preview_end = playblast.override.frame_end
+        scene.frame_preview_start = anim_reviewer.override.frame_start
+        scene.frame_preview_end = anim_reviewer.override.frame_end
 
     render.use_file_extension = True
     render.use_render_cache = False
@@ -70,10 +70,10 @@ def render_properties_override(context: bpy.types.Context):
     render.image_settings.compression = 15
     render.use_multiview = False
 
-    if playblast.override.use_viewport_shading:
-        space.shading.type = playblast.override.viewport_shading
+    if anim_reviewer.override.use_viewport_shading:
+        space.shading.type = anim_reviewer.override.viewport_shading
     space.shading.show_xray = False
-    space.overlay.show_overlays = playblast.override.show_overlays
+    space.overlay.show_overlays = anim_reviewer.override.show_overlays
 
     try:
         # Ensure the VIEW_3D area is in camera view
@@ -109,26 +109,26 @@ def render_properties_override(context: bpy.types.Context):
 def register_collect_metadata_handler(context: bpy.types.Context):
     """Register a handler to collect metadata durning playblast.
 
-    The collected metadata will temporarily stored in `scene.playblast["metadata"]`.
+    The collected metadata will temporarily stored in `scene.anim_reviewer["metadata"]`.
     """
 
     def handler(scene: bpy.types.Scene):
         metadata = get_metadata(bpy.context, is_rendering=True)
-        scene.playblast["metadata"][str(scene.frame_current)] = metadata
+        scene.anim_reviewer["metadata"][str(scene.frame_current)] = metadata
 
-    context.scene.playblast["metadata"] = {}
+    context.scene.anim_reviewer["metadata"] = {}
     bpy.app.handlers.frame_change_post.append(handler)
 
     try:
         yield
     finally:
         bpy.app.handlers.frame_change_post.remove(handler)
-        del context.scene.playblast["metadata"]
+        del context.scene.anim_reviewer["metadata"]
 
 
-class PLAYBLAST_OT_run(bpy.types.Operator):
-    bl_idname = "render.playblast"
-    bl_label = "Run Playblast"
+class ANIM_REVIEWER_OT_run(bpy.types.Operator):
+    bl_idname = "render.anim_review"
+    bl_label = "Run Anim Review"
     bl_description = (
         "Create a playblast video of the current scene.\n"
         "Please ensure you have an active camera and ffmpeg is installed in your system."
@@ -148,7 +148,7 @@ class PLAYBLAST_OT_run(bpy.types.Operator):
             return {"CANCELLED"}
 
         with (
-            TemporaryDirectory(prefix="blender_playblast_") as temp_dir,
+            TemporaryDirectory(prefix="blender_anim_reviewer_") as temp_dir,
             render_properties_override(context),
             register_collect_metadata_handler(context),
         ):
@@ -164,7 +164,7 @@ class PLAYBLAST_OT_run(bpy.types.Operator):
 
             # Keep datetime for each frame is the same
             t = datetime.now().isoformat(sep=" ", timespec="seconds")
-            for data in context.scene.playblast["metadata"].values():
+            for data in context.scene.anim_reviewer["metadata"].values():
                 data["datetime"] = t
 
             # Get real frame range
@@ -186,7 +186,7 @@ class PLAYBLAST_OT_run(bpy.types.Operator):
 
         This can avoid many error logs for ffmpeg.
         """
-        font_path: Path = context.scene.playblast.burn_in.font_family
+        font_path: Path = context.scene.anim_reviewer.burn_in.font_family
         if not font_path or not os.path.exists(font_path):
             font_path = BFONT_PATH
         else:
@@ -236,9 +236,9 @@ class PLAYBLAST_OT_run(bpy.types.Operator):
             return "".join(["&H", *color])
 
         scene = context.scene
-        playblast = scene.playblast
+        anim_reviewer = scene.anim_reviewer
 
-        if not playblast.burn_in.enable:
+        if not anim_reviewer.burn_in.enable:
             return
 
         with open(TEMPLATE_ASS_PATH, "r", encoding="utf-8") as f:
@@ -252,10 +252,12 @@ class PLAYBLAST_OT_run(bpy.types.Operator):
         font_name = get_full_font_name(self.temp_font)
 
         # Keep text ratio regardless of resolution scale
-        font_size = playblast.burn_in.font_size * playblast.override.scale // 100
+        font_size = (
+            anim_reviewer.burn_in.font_size * anim_reviewer.override.scale // 100
+        )
 
         # Get correct color format
-        font_color = get_hex_color(playblast.burn_in.color)
+        font_color = get_hex_color(anim_reviewer.burn_in.color)
 
         subtitles = template_ass.format_map(
             {
@@ -268,7 +270,7 @@ class PLAYBLAST_OT_run(bpy.types.Operator):
         )
 
         # Also scale margin to keep aspect ratio
-        margin = playblast.burn_in.margin * playblast.override.scale // 100
+        margin = anim_reviewer.burn_in.margin * anim_reviewer.override.scale // 100
 
         # Notice that the origin (0,0) is at the top-left corner for ass subtitles
         # pos, align, x, y
@@ -314,12 +316,12 @@ class PLAYBLAST_OT_run(bpy.types.Operator):
         dialogues = []
         template_dialogue = "Dialogue: 0,{start},{end},default,,0,0,0,,{{\\an{align}\\pos({x},{y})}}{text}"
         for frame in range(self.frame_start, self.frame_end + 1):
-            metadata = scene.playblast["metadata"][str(frame)]
+            metadata = scene.anim_reviewer["metadata"][str(frame)]
             start = frame_to_timecode(frame - self.frame_start, fps)
             end = frame_to_timecode(frame - self.frame_start + 1, fps)
 
             for pos, align, x, y in vars:
-                text = getattr(playblast.burn_in, pos)
+                text = getattr(anim_reviewer.burn_in, pos)
                 try:
                     text = text.format_map(metadata)
                 except Exception:
@@ -345,7 +347,7 @@ class PLAYBLAST_OT_run(bpy.types.Operator):
     def build_audio(self, context: bpy.types.Context):
         """Build audio file use blender's built-in tools."""
 
-        if not context.scene.playblast.video.include_audio:
+        if not context.scene.anim_reviewer.video.include_audio:
             return
 
         # Render audio
@@ -358,11 +360,11 @@ class PLAYBLAST_OT_run(bpy.types.Operator):
     def build_video(self, context: bpy.types.Context):
         """Build video from the rendered frames using ffmpeg."""
 
-        playblast = context.scene.playblast
-        output_path = playblast.file.full_path
-        codec = playblast.video.codec
-        include_audio = playblast.video.include_audio
-        enable_burn_in = playblast.burn_in.enable
+        anim_reviewer = context.scene.anim_reviewer
+        output_path = anim_reviewer.file.full_path
+        codec = anim_reviewer.video.codec
+        include_audio = anim_reviewer.video.include_audio
+        enable_burn_in = anim_reviewer.burn_in.enable
 
         # Get crf for different codecs
         match codec:
@@ -419,23 +421,23 @@ class PLAYBLAST_OT_run(bpy.types.Operator):
             return
 
 
-class PLAYBLAST_OT_import_settings(bpy.types.Operator, ImportHelper):
-    bl_idname = "playblast.import_settings"
+class ANIM_REVIEWER_OT_import_settings(bpy.types.Operator, ImportHelper):
+    bl_idname = "anim_reviewer.import_settings"
     bl_label = "Import Settings"
-    bl_description = "Import playblast settings from a file"
+    bl_description = "Import Anim Reviewer settings from a file"
 
     filename_ext = ".json"
     filter_glob: bpy.props.StringProperty(default="*.json", options={"HIDDEN"})
 
     def execute(self, context):
-        playblast = context.scene.playblast
+        anim_reviewer = context.scene.anim_reviewer
         with open(self.filepath, "r", encoding="utf-8") as f:
             data = json.load(f)
 
         # Reuse the same data structure as preset
         for attr, value in data.items():
             _, prop_group, prop_name = attr.split(".")
-            prop = getattr(playblast, prop_group)
+            prop = getattr(anim_reviewer, prop_group)
 
             # Convert list back to color property
             if isinstance(getattr(prop, prop_name), bpy.types.bpy_prop_array):
@@ -446,22 +448,22 @@ class PLAYBLAST_OT_import_settings(bpy.types.Operator, ImportHelper):
         return {"FINISHED"}
 
 
-class PLAYBLAST_OT_export_settings(bpy.types.Operator, ExportHelper):
-    bl_idname = "playblast.export_settings"
+class ANIM_REVIEWER_OT_export_settings(bpy.types.Operator, ExportHelper):
+    bl_idname = "anim_reviewer.export_settings"
     bl_label = "Export Settings"
-    bl_description = "Export current playblast settings to a file"
+    bl_description = "Export current Anim Reviewer settings to a file"
 
     filename_ext = ".json"
     filter_glob: bpy.props.StringProperty(default="*.json", options={"HIDDEN"})
 
     def execute(self, context: bpy.types.Context):
-        playblast = context.scene.playblast
+        anim_reviewer = context.scene.anim_reviewer
 
         # Reuse the same data structure as preset
         data = {}
-        for attr in PLAYBLAST_OT_preset_add.preset_values:
+        for attr in ANIM_REVIEWER_OT_preset_add.preset_values:
             _, prop_group, prop_name = attr.split(".")
-            value = getattr(getattr(playblast, prop_group), prop_name)
+            value = getattr(getattr(anim_reviewer, prop_group), prop_name)
 
             # Convert color to list for json serialization
             if isinstance(value, bpy.types.bpy_prop_array):
@@ -475,49 +477,49 @@ class PLAYBLAST_OT_export_settings(bpy.types.Operator, ExportHelper):
         return {"FINISHED"}
 
 
-class PLAYBLAST_OT_preset_add(AddPresetBase, bpy.types.Operator):
-    """Add a Playblast Preset"""
+class ANIM_REVIEWER_OT_preset_add(AddPresetBase, bpy.types.Operator):
+    """Add a Anim Reviewer Preset"""
 
-    bl_idname = "playblast.preset_add"
-    bl_label = "Add Playblast Preset"
-    preset_menu = "PLAYBLAST_PT_presets"
-    preset_subdir = "playblast"
+    bl_idname = "anim_reviewer.preset_add"
+    bl_label = "Add Anim Reviewer Preset"
+    preset_menu = "ANIM_REVIEWER_PT_presets"
+    preset_subdir = "anim_reviewer"
 
     preset_defines = [
-        "playblast = bpy.context.scene.playblast",
+        "anim_reviewer = bpy.context.scene.anim_reviewer",
     ]
 
     preset_values = [
-        "playblast.video.include_audio",
-        "playblast.video.codec",
-        "playblast.override.scale",
-        "playblast.override.show_overlays",
-        "playblast.override.use_viewport_shading",
-        "playblast.override.viewport_shading",
-        "playblast.file.directory",
-        "playblast.file.name",
-        "playblast.file.use_version",
-        "playblast.file.extension",
-        "playblast.burn_in.enable",
-        "playblast.burn_in.preview",
-        "playblast.burn_in.font_family",
-        "playblast.burn_in.font_size",
-        "playblast.burn_in.margin",
-        "playblast.burn_in.color",
-        "playblast.burn_in.top_left",
-        "playblast.burn_in.top_center",
-        "playblast.burn_in.top_right",
-        "playblast.burn_in.bottom_left",
-        "playblast.burn_in.bottom_center",
-        "playblast.burn_in.bottom_right",
+        "anim_reviewer.video.include_audio",
+        "anim_reviewer.video.codec",
+        "anim_reviewer.override.scale",
+        "anim_reviewer.override.show_overlays",
+        "anim_reviewer.override.use_viewport_shading",
+        "anim_reviewer.override.viewport_shading",
+        "anim_reviewer.file.directory",
+        "anim_reviewer.file.name",
+        "anim_reviewer.file.use_version",
+        "anim_reviewer.file.extension",
+        "anim_reviewer.burn_in.enable",
+        "anim_reviewer.burn_in.preview",
+        "anim_reviewer.burn_in.font_family",
+        "anim_reviewer.burn_in.font_size",
+        "anim_reviewer.burn_in.margin",
+        "anim_reviewer.burn_in.color",
+        "anim_reviewer.burn_in.top_left",
+        "anim_reviewer.burn_in.top_center",
+        "anim_reviewer.burn_in.top_right",
+        "anim_reviewer.burn_in.bottom_left",
+        "anim_reviewer.burn_in.bottom_center",
+        "anim_reviewer.burn_in.bottom_right",
     ]
 
 
 classes = (
-    PLAYBLAST_OT_run,
-    PLAYBLAST_OT_import_settings,
-    PLAYBLAST_OT_export_settings,
-    PLAYBLAST_OT_preset_add,
+    ANIM_REVIEWER_OT_run,
+    ANIM_REVIEWER_OT_import_settings,
+    ANIM_REVIEWER_OT_export_settings,
+    ANIM_REVIEWER_OT_preset_add,
 )
 
 

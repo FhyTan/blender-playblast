@@ -4,11 +4,11 @@ from bl_ui.utils import PresetPanel
 from .metadata import META_DATA_DESCRIPTIONS
 
 
-class PLAYBLAST_PT_presets(PresetPanel, bpy.types.Panel):
-    bl_label = "Playblast Presets"
-    preset_subdir = "playblast"
+class ANIM_REVIEWER_PT_presets(PresetPanel, bpy.types.Panel):
+    bl_label = "Anim Reviewer Presets"
+    preset_subdir = "anim_reviewer"
     preset_operator = "script.execute_preset"
-    preset_add_operator = "playblast.preset_add"
+    preset_add_operator = "anim_reviewer.preset_add"
 
     @staticmethod
     def post_cb(context, _filepath):
@@ -19,24 +19,26 @@ class PLAYBLAST_PT_presets(PresetPanel, bpy.types.Panel):
         scene.frame_step = scene.frame_step
 
 
-class PLAYBLAST_PT_main(bpy.types.Panel):
-    bl_idname = "PLAYBLAST_PT_main"
-    bl_label = "Playblast"
+class ANIM_REVIEWER_PT_main(bpy.types.Panel):
+    bl_idname = "ANIM_REVIEWER_PT_main"
+    bl_label = "Anim Reviewer"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "Tool"
     bl_options = {"DEFAULT_CLOSED"}
 
     def draw_header_preset(self, context):
-        PLAYBLAST_PT_presets.draw_panel_header(self.layout)
+        ANIM_REVIEWER_PT_presets.draw_panel_header(self.layout)
 
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        video_props = context.scene.playblast.video
-        layout.operator("render.playblast", text="Run Playblast", icon="RENDER_ANIMATION")
+        video_props = context.scene.anim_reviewer.video
+        layout.operator(
+            "render.anim_review", text="Run Anim Review", icon="RENDER_ANIMATION"
+        )
         layout.separator()
 
         col = layout.column()
@@ -44,13 +46,13 @@ class PLAYBLAST_PT_main(bpy.types.Panel):
         col.prop(video_props, "codec")
 
 
-class PLAYBLAST_PT_override(bpy.types.Panel):
-    bl_idname = "PLAYBLAST_PT_override"
+class ANIM_REVIEWER_PT_override(bpy.types.Panel):
+    bl_idname = "ANIM_REVIEWER_PT_override"
     bl_label = "Override"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "Tool"
-    bl_parent_id = "PLAYBLAST_PT_main"
+    bl_parent_id = "ANIM_REVIEWER_PT_main"
     bl_order = 0
 
     def draw(self, context: bpy.types.Context):
@@ -58,7 +60,7 @@ class PLAYBLAST_PT_override(bpy.types.Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        override_props = context.scene.playblast.override
+        override_props = context.scene.anim_reviewer.override
 
         col = layout.column()
 
@@ -81,13 +83,13 @@ class PLAYBLAST_PT_override(bpy.types.Panel):
         sub.prop(override_props, "viewport_shading", text="", expand=True)
 
 
-class PLAYBLAST_PT_file(bpy.types.Panel):
-    bl_idname = "PLAYBLAST_PT_file"
+class ANIM_REVIEWER_PT_file(bpy.types.Panel):
+    bl_idname = "ANIM_REVIEWER_PT_file"
     bl_label = "File"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "Tool"
-    bl_parent_id = "PLAYBLAST_PT_main"
+    bl_parent_id = "ANIM_REVIEWER_PT_main"
     bl_order = 1
 
     def draw(self, context: bpy.types.Context):
@@ -95,7 +97,7 @@ class PLAYBLAST_PT_file(bpy.types.Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        file_props = context.scene.playblast.file
+        file_props = context.scene.anim_reviewer.file
 
         col = layout.column()
 
@@ -116,28 +118,28 @@ class PLAYBLAST_PT_file(bpy.types.Panel):
         col.prop(file_props, "full_path")
 
 
-class PLAYBLAST_PT_burn_in(bpy.types.Panel):
-    bl_idname = "PLAYBLAST_PT_burn_in"
+class ANIM_REVIEWER_PT_burn_in(bpy.types.Panel):
+    bl_idname = "ANIM_REVIEWER_PT_burn_in"
     bl_label = "Burn-In Data"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "Tool"
-    bl_parent_id = "PLAYBLAST_PT_main"
+    bl_parent_id = "ANIM_REVIEWER_PT_main"
     bl_order = 2
 
     def draw_header(self, context: bpy.types.Context):
         layout = self.layout
 
-        burn_in_props = context.scene.playblast.burn_in
+        burn_in_props = context.scene.anim_reviewer.burn_in
         layout.prop(burn_in_props, "enable", text="")
-        layout.popover(panel="PLAYBLAST_PT_burn_in_help", text="", icon="QUESTION")
+        layout.popover(panel="ANIM_REVIEWER_PT_burn_in_help", text="", icon="QUESTION")
 
     def draw(self, context: bpy.types.Context):
         layout = self.layout
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        burn_in_props = context.scene.playblast.burn_in
+        burn_in_props = context.scene.anim_reviewer.burn_in
 
         col = layout.column()
         col.enabled = burn_in_props.enable
@@ -158,8 +160,8 @@ class PLAYBLAST_PT_burn_in(bpy.types.Panel):
         col.prop(burn_in_props, "bottom_right")
 
 
-class PLAYBLAST_PT_burn_in_help(bpy.types.Panel):
-    bl_idname = "PLAYBLAST_PT_burn_in_help"
+class ANIM_REVIEWER_PT_burn_in_help(bpy.types.Panel):
+    bl_idname = "ANIM_REVIEWER_PT_burn_in_help"
     bl_label = "Burn-In Data Help"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
@@ -181,13 +183,13 @@ class PLAYBLAST_PT_burn_in_help(bpy.types.Panel):
             grid.label(text=description)
 
 
-class PLAYBLAST_PT_settings(bpy.types.Panel):
-    bl_idname = "PLAYBLAST_PT_settings"
+class ANIM_REVIEWER_PT_settings(bpy.types.Panel):
+    bl_idname = "ANIM_REVIEWER_PT_settings"
     bl_label = "Settings"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "Tool"
-    bl_parent_id = "PLAYBLAST_PT_main"
+    bl_parent_id = "ANIM_REVIEWER_PT_main"
     bl_order = 3
 
     def draw(self, context: bpy.types.Context):
@@ -196,18 +198,18 @@ class PLAYBLAST_PT_settings(bpy.types.Panel):
         layout.use_property_decorate = False
 
         row = layout.row()
-        row.operator("playblast.import_settings", text="Import", icon="IMPORT")
-        row.operator("playblast.export_settings", text="Export", icon="EXPORT")
+        row.operator("anim_reviewer.import_settings", text="Import", icon="IMPORT")
+        row.operator("anim_reviewer.export_settings", text="Export", icon="EXPORT")
 
 
 classes = (
-    PLAYBLAST_PT_presets,
-    PLAYBLAST_PT_main,
-    PLAYBLAST_PT_override,
-    PLAYBLAST_PT_file,
-    PLAYBLAST_PT_burn_in,
-    PLAYBLAST_PT_burn_in_help,
-    PLAYBLAST_PT_settings,
+    ANIM_REVIEWER_PT_presets,
+    ANIM_REVIEWER_PT_main,
+    ANIM_REVIEWER_PT_override,
+    ANIM_REVIEWER_PT_file,
+    ANIM_REVIEWER_PT_burn_in,
+    ANIM_REVIEWER_PT_burn_in_help,
+    ANIM_REVIEWER_PT_settings,
 )
 
 

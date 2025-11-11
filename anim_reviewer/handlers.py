@@ -80,7 +80,7 @@ def preview_burn_in_handler():
     if not poll(context):
         return
 
-    playblast = context.scene.playblast
+    anim_reviewer = context.scene.anim_reviewer
     res_x = context.scene.render.resolution_x
     top_right, bottom_right, bottom_left, top_left = get_camera_frame_rect(context)
     metadata = get_metadata(context)
@@ -89,15 +89,15 @@ def preview_burn_in_handler():
     factor = (bottom_right[0] - bottom_left[0]) / res_x
 
     # Get font properties
-    font_path = playblast.burn_in.font_family
+    font_path = anim_reviewer.burn_in.font_family
     if not font_path or not os.path.exists(font_path):
         font_path = BFONT_PATH
     else:
         font_path = Path(font_path)
     font_id = blf.load(font_path.as_posix())
-    font_size = int(playblast.burn_in.font_size * factor)
-    font_color = playblast.burn_in.color
-    font_margin = int(playblast.burn_in.margin * factor)
+    font_size = int(anim_reviewer.burn_in.font_size * factor)
+    font_color = anim_reviewer.burn_in.color
+    font_margin = int(anim_reviewer.burn_in.margin * factor)
 
     blf.size(font_id, font_size)
     blf.color(font_id, *font_color)
@@ -156,7 +156,7 @@ def preview_burn_in_handler():
     ]
 
     for pos, get_position in positions:
-        text = getattr(playblast.burn_in, pos)
+        text = getattr(anim_reviewer.burn_in, pos)
         try:
             text = text.format_map(metadata)
         except Exception:
@@ -180,7 +180,7 @@ def register_or_unregister_preview_handler(
     Preview handler only be registered when user enables the burn-in and preview.
 
     When this function is called by update of the burn-in properties,
-    we can not access playblast.burn_in.enable directly, so we provide
+    we can not access anim_reviewer.burn_in.enable directly, so we provide
     a mode parameter to force register or unregister.
     """
     global preview_handler
@@ -190,8 +190,8 @@ def register_or_unregister_preview_handler(
     elif mode == "unregister":
         register = False
     else:  # auto
-        playblast = bpy.context.scene.playblast
-        register = playblast.burn_in.enable and playblast.burn_in.preview
+        anim_reviewer = bpy.context.scene.anim_reviewer
+        register = anim_reviewer.burn_in.enable and anim_reviewer.burn_in.preview
 
     if register is True and preview_handler is None:
         print("Register preview burn-in handler")
