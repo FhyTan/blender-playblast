@@ -2,40 +2,40 @@
 msgid ""
 msgstr ""
 
-#. :src: bpy.types.PLAYBLAST_OT_export_settings
+#. :src: bpy.types.ANIM_REVIEWER_OT_export_settings
 msgctxt "Operator"
 msgid "Export Settings"
 msgstr ""
 
-#. :src: bpy.types.PLAYBLAST_OT_import_settings
+#. :src: bpy.types.ANIM_REVIEWER_OT_import_settings
 msgctxt "Operator"
 msgid "Import Settings"
 msgstr ""
 
-#. :src: bpy.types.PLAYBLAST_OT_preset_add
-msgid "Add a Playblast Preset"
+#. :src: bpy.types.ANIM_REVIEWER_OT_preset_add
+msgid "Add a Anim Reviewer Preset"
 msgstr ""
 
-#. :src: bpy.types.PLAYBLAST_OT_preset_add
+#. :src: bpy.types.ANIM_REVIEWER_OT_preset_add
 msgctxt "Operator"
-msgid "Add Playblast Preset"
+msgid "Add Anim Reviewer Preset"
 msgstr ""
 
-#. :src: bpy.types.RENDER_OT_playblast
-#: extensions/vscode_development/playblast/panels.py:39
+#. :src: bpy.types.RENDER_OT_anim_review
+#: extensions/vscode_development/anim_reviewer/panels.py:40
 msgctxt "Operator"
-msgid "Run Playblast"
+msgid "Run Anim Review"
 msgstr ""
 
-#. :src: bpy.types.PLAYBLAST_OT_export_settings
-msgid "Export current playblast settings to a file"
+#. :src: bpy.types.ANIM_REVIEWER_OT_export_settings
+msgid "Export current Anim Reviewer settings to a file"
 msgstr ""
 
-#. :src: bpy.types.PLAYBLAST_OT_import_settings
-msgid "Import playblast settings from a file"
+#. :src: bpy.types.ANIM_REVIEWER_OT_import_settings
+msgid "Import Anim Reviewer settings from a file"
 msgstr ""
 
-#. :src: bpy.types.RENDER_OT_playblast
+#. :src: bpy.types.RENDER_OT_anim_review
 msgid ""
 "Create a playblast video of the current scene.\n"
 "Please ensure you have an active camera and ffmpeg is installed in your system."
@@ -226,18 +226,6 @@ msgstr ""
 msgid "Rendered shading"
 msgstr ""
 
-#. :src: bpy.types.PlayblastProperties.first_load
-msgid "First Load"
-msgstr ""
-
-#. :src: bpy.types.PlayblastProperties.first_load
-msgid ""
-"Internal property.\n"
-"Indicate if this is the first time loading the playblast settings.\n"
-"If true, load default settings from the saved json file.\n"
-"It will be set and persisted to false after the first load."
-msgstr ""
-
 #. :src: bpy.types.VideoProperties.codec
 msgid "Video codec for playblast"
 msgstr ""
@@ -270,83 +258,83 @@ msgstr ""
 msgid "Include audio in the playblast video"
 msgstr ""
 
-#: extensions/vscode_development/playblast/operators.py:153
+#: extensions/vscode_development/anim_reviewer/operators.py:151
 msgid "FFmpeg is not installed or not found in PATH."
 msgstr ""
 
-#: extensions/vscode_development/playblast/operators.py:417
+#: extensions/vscode_development/anim_reviewer/operators.py:417
 msgid "Playblast completed, saved to \"{}\", opening video..."
 msgstr ""
 
-#: extensions/vscode_development/playblast/operators.py:424
+#: extensions/vscode_development/anim_reviewer/operators.py:424
 msgid "FFmpeg processing failed, please open console for details."
 msgstr ""
 
-#: extensions/vscode_development/playblast/panels.py:67
+#: extensions/vscode_development/anim_reviewer/panels.py:69
 msgid "Frame Range"
 msgstr ""
 
-#: extensions/vscode_development/playblast/panels.py:71
+#: extensions/vscode_development/anim_reviewer/panels.py:73
 msgid "Start"
 msgstr ""
 
-#: extensions/vscode_development/playblast/panels.py:72
+#: extensions/vscode_development/anim_reviewer/panels.py:74
 msgid "End"
 msgstr ""
 
-#: extensions/vscode_development/playblast/panels.py:77
+#: extensions/vscode_development/anim_reviewer/panels.py:79
 msgid "Viewport Shading"
 msgstr ""
 
-#: extensions/vscode_development/playblast/panels.py:105
+#: extensions/vscode_development/anim_reviewer/panels.py:107
 msgid "Default to current blend file directory"
 msgstr ""
 
-#: extensions/vscode_development/playblast/panels.py:109
+#: extensions/vscode_development/anim_reviewer/panels.py:111
 msgid "Version"
 msgstr ""
 
-#: extensions/vscode_development/playblast/panels.py:149
+#: extensions/vscode_development/anim_reviewer/panels.py:151
 msgid "Default to Blender Font"
 msgstr ""
 
-#: extensions/vscode_development/playblast/panels.py:174
+#: extensions/vscode_development/anim_reviewer/panels.py:176
 msgid "Use curly braces {} to denote variables in text, for example {datetime} for the current time."
 msgstr ""
 
-#: extensions/vscode_development/playblast/panels.py:176
+#: extensions/vscode_development/anim_reviewer/panels.py:178
 msgid "The following variables are currently available:"
 msgstr ""
 
-#: extensions/vscode_development/playblast/panels.py:199
+#: extensions/vscode_development/anim_reviewer/panels.py:201
 msgctxt "Operator"
 msgid "Import"
 msgstr ""
 
-#: extensions/vscode_development/playblast/panels.py:200
+#: extensions/vscode_development/anim_reviewer/panels.py:202
 msgctxt "Operator"
 msgid "Export"
 msgstr ""
 
-#: extensions/vscode_development/playblast/panels.py:180
+#: extensions/vscode_development/anim_reviewer/panels.py:182
 msgid "{}"
 msgstr ""
 
-#: extensions/vscode_development/playblast/utils.py:56
+#: extensions/vscode_development/anim_reviewer/utils.py:56
 msgid "File not found: {!r}"
 msgstr ""
 
-#: extensions/vscode_development/playblast/utils.py:141
+#: extensions/vscode_development/anim_reviewer/utils.py:141
 msgid ""
 "Couldn't run external animation player with command {!r}\n"
 "{:s}"
 msgstr ""
 
-#: Add-on Playblast info: name
-msgid "Playblast"
+#: Add-on Anim Reviewer info: name
+msgid "Anim Reviewer"
 msgstr ""
 
-#: Add-on Playblast info: description
-msgid "Blender playblast tool similarly to Maya playblast"
+#: Add-on Anim Reviewer info: description
+msgid "Enhance blender playblast capabilities for animation review"
 msgstr ""
 

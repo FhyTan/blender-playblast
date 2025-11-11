@@ -1,2 +1,2 @@
-blender --command extension build --source-dir ./playblast --output-dir ./dist
+blender --command extension build --source-dir ./anim_reviewer --output-dir ./dist
 pause

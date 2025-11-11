@@ -12,40 +12,41 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit"
 
-#. :src: bpy.types.PLAYBLAST_OT_export_settings
+#. :src: bpy.types.ANIM_REVIEWER_OT_export_settings
 msgctxt "Operator"
 msgid "Export Settings"
 msgstr "导出设置"
 
-#. :src: bpy.types.PLAYBLAST_OT_import_settings
+#. :src: bpy.types.ANIM_REVIEWER_OT_import_settings
 msgctxt "Operator"
 msgid "Import Settings"
 msgstr "导入设置"
 
-#. :src: bpy.types.PLAYBLAST_OT_preset_add
-msgid "Add a Playblast Preset"
-msgstr "添加拍屏预设"
+#. :src: bpy.types.ANIM_REVIEWER_OT_preset_add
+msgid "Add a Anim Reviewer Preset"
+msgstr "添加 Anim Reviewer 预设"
 
-#. :src: bpy.types.PLAYBLAST_OT_preset_add
+#. :src: bpy.types.ANIM_REVIEWER_OT_preset_add
 msgctxt "Operator"
-msgid "Add Playblast Preset"
-msgstr "添加拍屏预设"
+msgid "Add Anim Reviewer Preset"
+msgstr "添加 Anim Reviewer 预设"
 
-#. :src: bpy.types.RENDER_OT_playblast
-#: extensions/vscode_development/playblast/panels.py:39
+#. :src: bpy.types.RENDER_OT_anim_review
+#: extensions/vscode_development/anim_reviewer/panels.py:40
 msgctxt "Operator"
-msgid "Run Playblast"
+msgid "Run Anim Review"
 msgstr "运行拍屏"
 
-#. :src: bpy.types.PLAYBLAST_OT_export_settings
-msgid "Export current playblast settings to a file"
-msgstr "将当前拍屏设置导出到文件"
+#. :src: bpy.types.ANIM_REVIEWER_OT_export_settings
+#, fuzzy
+msgid "Export current Anim Reviewer settings to a file"
+msgstr "将当前 Anim Reviewer 设置导出到文件"
 
-#. :src: bpy.types.PLAYBLAST_OT_import_settings
-msgid "Import playblast settings from a file"
-msgstr "从文件导入拍屏设置"
+#. :src: bpy.types.ANIM_REVIEWER_OT_import_settings
+msgid "Import Anim Reviewer settings from a file"
+msgstr "从文件中导入 Anim Reviewer 设置"
 
-#. :src: bpy.types.RENDER_OT_playblast
+#. :src: bpy.types.RENDER_OT_anim_review
 msgid ""
 "Create a playblast video of the current scene.\n"
 "Please ensure you have an active camera and ffmpeg is installed in your system."
@@ -251,22 +252,6 @@ msgstr "材质着色"
 msgid "Rendered shading"
 msgstr "渲染着色"
 
-#. :src: bpy.types.PlayblastProperties.first_load
-msgid "First Load"
-msgstr "首次加载"
-
-#. :src: bpy.types.PlayblastProperties.first_load
-msgid ""
-"Internal property.\n"
-"Indicate if this is the first time loading the playblast settings.\n"
-"If true, load default settings from the saved json file.\n"
-"It will be set and persisted to false after the first load."
-msgstr ""
-"内部属性。\n"
-"指示是否为首次加载拍屏设置。\n"
-"如果为真，则从已保存的 json 文件加载默认设置。\n"
-"首次加载后该属性将被设置并持久化为 false。"
-
 #. :src: bpy.types.VideoProperties.codec
 msgid "Video codec for playblast"
 msgstr "拍屏的视频编码器"
@@ -299,73 +284,73 @@ msgstr "包含音频"
 msgid "Include audio in the playblast video"
 msgstr "在拍屏视频中包含音频"
 
-#: extensions/vscode_development/playblast/operators.py:153
+#: extensions/vscode_development/anim_reviewer/operators.py:151
 msgid "FFmpeg is not installed or not found in PATH."
 msgstr "未安装 FFmpeg 或未在 PATH 中找到。"
 
-#: extensions/vscode_development/playblast/operators.py:417
+#: extensions/vscode_development/anim_reviewer/operators.py:417
 msgid "Playblast completed, saved to \"{}\", opening video..."
 msgstr "拍屏完成，已保存到 \"{}\"，正在打开视频..."
 
-#: extensions/vscode_development/playblast/operators.py:424
+#: extensions/vscode_development/anim_reviewer/operators.py:424
 msgid "FFmpeg processing failed, please open console for details."
 msgstr "FFmpeg 处理失败，请打开控制台查看详细信息。"
 
-#: extensions/vscode_development/playblast/panels.py:67
+#: extensions/vscode_development/anim_reviewer/panels.py:69
 msgid "Frame Range"
 msgstr "帧范围"
 
-#: extensions/vscode_development/playblast/panels.py:71
+#: extensions/vscode_development/anim_reviewer/panels.py:73
 msgid "Start"
 msgstr "开始"
 
-#: extensions/vscode_development/playblast/panels.py:72
+#: extensions/vscode_development/anim_reviewer/panels.py:74
 msgid "End"
 msgstr "结束"
 
-#: extensions/vscode_development/playblast/panels.py:77
+#: extensions/vscode_development/anim_reviewer/panels.py:79
 msgid "Viewport Shading"
 msgstr "视口着色"
 
-#: extensions/vscode_development/playblast/panels.py:105
+#: extensions/vscode_development/anim_reviewer/panels.py:107
 msgid "Default to current blend file directory"
 msgstr "默认使用当前 .blend 文件目录"
 
-#: extensions/vscode_development/playblast/panels.py:109
+#: extensions/vscode_development/anim_reviewer/panels.py:111
 msgid "Version"
 msgstr "版本"
 
-#: extensions/vscode_development/playblast/panels.py:149
+#: extensions/vscode_development/anim_reviewer/panels.py:151
 msgid "Default to Blender Font"
 msgstr "默认使用 Blender 字体"
 
-#: extensions/vscode_development/playblast/panels.py:174
+#: extensions/vscode_development/anim_reviewer/panels.py:176
 msgid "Use curly braces {} to denote variables in text, for example {datetime} for the current time."
 msgstr "在文本中使用花括号 {} 表示变量，例如 {datetime} 表示当前时间。"
 
-#: extensions/vscode_development/playblast/panels.py:176
+#: extensions/vscode_development/anim_reviewer/panels.py:178
 msgid "The following variables are currently available:"
 msgstr "当前可用的变量如下："
 
-#: extensions/vscode_development/playblast/panels.py:199
+#: extensions/vscode_development/anim_reviewer/panels.py:201
 msgctxt "Operator"
 msgid "Import"
 msgstr "导入"
 
-#: extensions/vscode_development/playblast/panels.py:200
+#: extensions/vscode_development/anim_reviewer/panels.py:202
 msgctxt "Operator"
 msgid "Export"
 msgstr "导出"
 
-#: extensions/vscode_development/playblast/panels.py:180
+#: extensions/vscode_development/anim_reviewer/panels.py:182
 msgid "{}"
 msgstr "{}"
 
-#: extensions/vscode_development/playblast/utils.py:56
+#: extensions/vscode_development/anim_reviewer/utils.py:56
 msgid "File not found: {!r}"
 msgstr "未找到文件：{!r}"
 
-#: extensions/vscode_development/playblast/utils.py:141
+#: extensions/vscode_development/anim_reviewer/utils.py:141
 msgid ""
 "Couldn't run external animation player with command {!r}\n"
 "{:s}"
@@ -373,25 +358,90 @@ msgstr ""
 "无法使用命令 {!r} 运行外部动画播放器\n"
 "{:s}"
 
-#. :src: Add-on Playblast info: name
-msgid "Playblast"
-msgstr "拍屏"
+#: Add-on Anim Reviewer info: name
+msgid "Anim Reviewer"
+msgstr ""
 
-#. :src: Add-on Playblast info: description
-msgid "Blender playblast tool similarly to Maya playblast"
-msgstr "类似于 Maya 拍屏的 Blender 拍屏工具"
+#: Add-on Anim Reviewer info: description
+msgid "Enhance blender playblast capabilities for animation review"
+msgstr "增强 blender 拍屏功能"
 
 
-#~ msgid "Playblast canceled"
-#~ msgstr "拍屏已取消"
+#~ msgid "Blender playblast tool similarly to Maya"
+#~ msgstr "类似于 Maya 的 Blender 拍屏工具"
+
+
+#~ msgctxt "Operator"
+#~ msgid "Add Playblast Preset"
+#~ msgstr "添加拍屏预设"
+
+
+#~ msgid "Override Range"
+#~ msgstr "覆盖帧范围"
+
+
+#~ msgid "Export current playblast settings to a file"
+#~ msgstr "将当前拍屏设置导出到文件"
+
+
+#~ msgctxt "Operator"
+#~ msgid "Run"
+#~ msgstr "运行"
+
+
+#~ msgid "Resolution Scale"
+#~ msgstr "分辨率缩放"
+
+
+#~ msgctxt "Operator"
+#~ msgid "Run Playblast"
+#~ msgstr "运行拍屏"
+
+
+#~ msgctxt "Operator"
+#~ msgid "Save as Default"
+#~ msgstr "保存为默认"
+
+
+#~ msgid "HEVC codec"
+#~ msgstr "HEVC 编码"
+
+
+#~ msgid "Blender playblast tool similarly to Maya playblast"
+#~ msgstr "类似于 Maya 拍屏的 Blender 拍屏工具"
+
+
+#~ msgctxt "Operator"
+#~ msgid "Save As Default"
+#~ msgstr "保存为默认"
 
 
 #~ msgid "Playblast started, press ESC to cancel it"
 #~ msgstr "拍屏已开始，按 ESC 可取消"
 
 
+#~ msgid "First Load"
+#~ msgstr "首次加载"
+
+
 #~ msgid "Failed to set up running settings: "
 #~ msgstr "设置运行配置失败："
+
+
+#~ msgid "Use specific frame range for the playblast instead of the entire scene frame range"
+#~ msgstr "使用指定的帧范围进行拍屏而非整个场景的帧范围"
+
+
+#~ msgid "Add a Playblast Preset"
+#~ msgstr "添加拍屏预设"
+
+
+#~ msgid "Playblast"
+#~ msgstr "拍屏"
+
+
+#~ msgid "Import playblast settings from a file"
+#~ msgstr "从文件导入拍屏设置"
 
 
 #~ msgid ""
@@ -403,53 +453,34 @@ msgstr "类似于 Maya 拍屏的 Blender 拍屏工具"
 #~ "若未指定，使用当前 .blend 文件所在目录；若 .blend 未保存，则使用系统临时目录。"
 
 
-#~ msgctxt "Operator"
-#~ msgid "Save as Default"
-#~ msgstr "保存为默认"
+#~ msgid "Video Codec"
+#~ msgstr "视频编码"
 
 
 #~ msgid "Save the current playblast settings as default, then your new blender file will use these playblast settings as default."
 #~ msgstr "将当前拍屏设置保存为默认，新创建的 Blender 文件将使用这些默认设置。"
 
 
-#~ msgid "Failed to build video with ffmpeg."
-#~ msgstr "使用 ffmpeg 生成视频失败。"
-
-
-#~ msgid "Video Codec"
-#~ msgstr "视频编码"
-
-
-#~ msgctxt "Operator"
-#~ msgid "Run"
-#~ msgstr "运行"
-
-
-#~ msgid "Override Range"
-#~ msgstr "覆盖帧范围"
-
-
-#~ msgid "Use specific frame range for the playblast instead of the entire scene frame range"
-#~ msgstr "使用指定的帧范围进行拍屏而非整个场景的帧范围"
-
-
-#~ msgid "Blender playblast tool similarly to Maya"
-#~ msgstr "类似于 Maya 的 Blender 拍屏工具"
-
-
-#~ msgid "HEVC codec"
-#~ msgstr "HEVC 编码"
-
-
-#~ msgctxt "Operator"
-#~ msgid "Save As Default"
-#~ msgstr "保存为默认"
-
-
 #~ msgid "Default playblast settings saved. New blender files will use these settings."
 #~ msgstr "默认拍屏设置已保存。新建的 Blender 文件将使用这些设置。"
 
 
-#~ msgid "Resolution Scale"
-#~ msgstr "分辨率缩放"
+#~ msgid "Failed to build video with ffmpeg."
+#~ msgstr "使用 ffmpeg 生成视频失败。"
+
+
+#~ msgid ""
+#~ "Internal property.\n"
+#~ "Indicate if this is the first time loading the playblast settings.\n"
+#~ "If true, load default settings from the saved json file.\n"
+#~ "It will be set and persisted to false after the first load."
+#~ msgstr ""
+#~ "内部属性。\n"
+#~ "指示是否为首次加载拍屏设置。\n"
+#~ "如果为真，则从已保存的 json 文件加载默认设置。\n"
+#~ "首次加载后该属性将被设置并持久化为 false。"
+
+
+#~ msgid "Playblast canceled"
+#~ msgstr "拍屏已取消"
 
