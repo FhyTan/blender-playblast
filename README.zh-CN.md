@@ -1,6 +1,6 @@
-# Blender 拍屏工具
+# 增强 Blender 拍屏预览插件
 
-一个类似 Maya 拍屏功能的插件，让你一键拍屏预览动画，还能方便的添加自定义信息到视频上
+该插件增强 Blender 原生的拍屏，提供一些便利功能，可以一键拍屏预览动画，临时修改视频属性，还能方便的添加自定义信息到视频上
 
 ![demonstrate](images/demonstrate.gif)
 
@@ -15,7 +15,7 @@
 
 ## 位置
 
-3D Viewport ‣ N-panel ‣ Tool ‣ Playblast
+3D Viewport ‣ N-panel ‣ Tool ‣ Anim Reviewer
 
 ![interface](images/interface.png)
 
@@ -27,10 +27,10 @@
 
 ### 基本拍屏
 
-- 一键生成当前场景的预览视频
+- 一键生成当前动画场景的预览视频
 - 支持多种视频编码格式（H.264、H.265、MPEG-4、AV1）
 - 可以同步输出音频
-- 在面板中覆盖的参数不会影响场景里的设置，仅在拍屏中生效
+- 修改视频参数（分辨率，帧范围，输出位置等），不会影响场景里的设置，仅在拍屏中生效
 
 ### 字幕叠加 (Burn-in)
 

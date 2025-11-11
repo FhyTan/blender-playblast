@@ -1,8 +1,8 @@
 [English](README.md) | [中文](README.zh-CN.md)
 
-# Blender Playblast Tool
+# Enhanced Blender Playblast Preview Plugin
 
-A plugin similar to Maya's playblast functionality that allows you to create animation previews with one click and conveniently add custom information to videos.
+This plugin enhances Blender's native playblast, providing convenient features that allow one-click animation preview, temporary modification of video properties, and easy addition of custom information to videos.
 
 ![demonstrate](images/demonstrate.gif)
 
@@ -11,13 +11,13 @@ A plugin similar to Maya's playblast functionality that allows you to create ani
 - Blender 4.2.0 or higher
 - FFmpeg (required for video processing)
 
-Due to some limitations of the Blender Python API, this plugin requires FFmpeg to be installed on your computer for video processing and compositing.
+Due to some limitations of the Blender Python API, using this plugin requires FFmpeg to be installed on your computer first for video processing and compositing.
 
 If you are using Windows, we recommend using [UniGetUI](https://github.com/marticliment/UniGetUI) to quickly install FFmpeg.
 
 ## Location
 
-3D Viewport ‣ N-panel ‣ Tool ‣ Playblast
+3D Viewport ‣ N-panel ‣ Tool ‣ Anim Reviewer
 
 ![interface](images/interface.png)
 
@@ -32,9 +32,9 @@ Ensure there is an active camera in the scene, go to the playblast panel and cli
 - One-click generation of current scene preview videos
 - Support for multiple video codec formats (H.264, H.265, MPEG-4, AV1)
 - Can synchronously output audio
-- Parameters overridden in the panel do not affect scene settings, only take effect during playblast
+- Modify video parameters (resolution, frame range, output location, etc.) without affecting the scene settings, only take effect during playblast
 
-### Burn-in Subtitles
+### Burn-in Metadata
 
 - Overlay custom information on videos
 - Support for 6 positions: top-left, top-center, top-right, bottom-left, bottom-center, bottom-right
