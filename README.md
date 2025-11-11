@@ -1,6 +1,6 @@
 [English](README.md) | [中文](README.zh-CN.md)
 
-# Enhanced Blender Playblast Preview Plugin
+# Enhanced Blender Playblast Review Plugin
 
 This plugin enhances Blender's native playblast, providing convenient features that allow one-click animation preview, temporary modification of video properties, and easy addition of custom information to videos.
 
