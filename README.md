@@ -23,7 +23,7 @@ If you are using Windows, we recommend using [UniGetUI](https://github.com/marti
 
 ## Usage Tutorial
 
-Ensure there is an active camera in the scene, go to the playblast panel and click "Run" to start.
+Ensure there is an active camera in the scene, go to the Anim Reviewer panel and click "Run Anim Review" to start playblast.
 
 ## Feature Overview
 
