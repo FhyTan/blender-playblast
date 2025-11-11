@@ -35,9 +35,9 @@ def render_properties_override(context: bpy.types.Context):
     resolution_percentage = render.resolution_percentage
 
     frame_current = scene.frame_current
+    frame_start = scene.frame_start
+    frame_end = scene.frame_end
     use_preview_range = scene.use_preview_range
-    frame_preview_start = scene.frame_preview_start
-    frame_preview_end = scene.frame_preview_end
 
     filepath = render.filepath
     use_file_extension = render.use_file_extension
@@ -57,10 +57,15 @@ def render_properties_override(context: bpy.types.Context):
     render.resolution_y = metadata["height"]
     render.resolution_percentage = 100
 
+    # Use scene frame range instead of preview range
+    # Audio range will always use scene frame range
     if anim_reviewer.override.use_frame_range:
-        scene.use_preview_range = True
-        scene.frame_preview_start = anim_reviewer.override.frame_start
-        scene.frame_preview_end = anim_reviewer.override.frame_end
+        scene.use_preview_range = False
+        scene.frame_start = anim_reviewer.override.frame_start
+        scene.frame_end = anim_reviewer.override.frame_end
+    elif scene.use_preview_range:
+        scene.frame_start = scene.frame_preview_start
+        scene.frame_end = scene.frame_preview_end
 
     render.use_file_extension = True
     render.use_render_cache = False
@@ -87,9 +92,9 @@ def render_properties_override(context: bpy.types.Context):
         render.resolution_percentage = resolution_percentage
 
         scene.frame_set(frame_current)
+        scene.frame_start = frame_start
+        scene.frame_end = frame_end
         scene.use_preview_range = use_preview_range
-        scene.frame_preview_start = frame_preview_start
-        scene.frame_preview_end = frame_preview_end
 
         render.filepath = filepath
         render.use_file_extension = use_file_extension
